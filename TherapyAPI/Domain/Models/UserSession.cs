@@ -6,6 +6,7 @@ namespace Domain.Models
         public virtual User User { get; set; }
         public virtual string AuthCode { get; set; }
         public virtual string Token { get; set; }
+        public virtual DateTime Created { get; set; }
         public virtual bool Deleted { get; set; }   
     }
 }

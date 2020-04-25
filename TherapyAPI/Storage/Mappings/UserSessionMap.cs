@@ -15,7 +15,8 @@ namespace Storage.Mappings
 
             Map(u => u.AuthCode, "auth_code");
             Map(u => u.Token, "token");
-            Map(u => u.Deleted, "deleted");
+            Map(u => u.Created, "created");
+            Map(u => u.Deleted, "deleted").Not.Nullable();
         }
     }
 }
