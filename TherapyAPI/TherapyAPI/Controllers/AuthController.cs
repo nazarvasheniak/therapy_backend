@@ -37,7 +37,7 @@ namespace TherapyAPI.Controllers
                     Message = "Пользователь не найден"
                 });
 
-            var session = UserSessionService.CreateSession(user);
+            UserSessionService.CreateSession(user);
 
             return Ok(new ResponseModel());
         }
