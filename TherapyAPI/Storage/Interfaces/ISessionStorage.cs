@@ -1,7 +1,10 @@
 ﻿using System;
+using NHibernate;
+
 namespace Storage.Interfaces
 {
-    public struct ISessionStorage
+    public interface ISessionStorage
     {
+        ISession Session { get; }
     }
 }
