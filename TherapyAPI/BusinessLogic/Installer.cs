@@ -10,7 +10,8 @@ namespace BusinessLogic
         public static void AddBuisnessServices(this IServiceCollection container)
         {
             container
-                .AddScoped<IUserService, UserService>();
+                .AddScoped<IUserService, UserService>()
+                .AddScoped<IUserSessionService, UserSessionService>();
         }
     }
 }

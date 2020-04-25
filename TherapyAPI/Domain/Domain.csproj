@@ -11,5 +11,10 @@
     <Folder Include="Enums\" />
     <Folder Include="Models\" />
     <Folder Include="ViewModels\" />
+    <Folder Include="ViewModels\Request\" />
+    <Folder Include="ViewModels\Response\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="ViewModels\Request\SignInRequest.json" />
   </ItemGroup>
 </Project>
