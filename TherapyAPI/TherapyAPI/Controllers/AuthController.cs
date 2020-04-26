@@ -37,9 +37,50 @@ namespace TherapyAPI.Controllers
                     Message = "Пользователь не найден"
                 });
 
+            if (UserSessionService.GetUserActiveSession(user) != null)
+                UserSessionService.CloseUserActiveSession(user);
+
             UserSessionService.CreateSession(user);
 
-            return Ok(new ResponseModel());
+            return Ok(new SignInResponse
+            {
+                UserID = user.ID
+            });
+        }
+
+        // api/auth/sign-in/confirm
+        [HttpPost("sign-in/confirm")]
+        public IActionResult SignInConfirm([FromBody] SignInConfirmRequest request)
+        {
+            var user = UserService.Get(request.UserID);
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var session = UserSessionService.GetUserActiveSession(user);
+            if (session == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Сессия не найдена"
+                });
+
+            if (request.Code != session.AuthCode)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Неверный код подтверждения"
+                });
+
+            var token = UserSessionService.AuthorizeUser(user);
+
+            return Ok(new SignInConfirmResponse
+            {
+                Token = token
+            });
         }
     }
 }
