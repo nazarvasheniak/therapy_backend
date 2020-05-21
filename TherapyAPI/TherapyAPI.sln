@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "Domain\Domain.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Storage", "Storage\Storage.csproj", "{920C9521-54F8-4349-B0D5-E36BE4B66C4B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utils", "Utils\Utils.csproj", "{45DDE51C-F681-46E2-8BE3-8D5CB8CECCEC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,5 +33,9 @@ Global
 		{920C9521-54F8-4349-B0D5-E36BE4B66C4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{920C9521-54F8-4349-B0D5-E36BE4B66C4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{920C9521-54F8-4349-B0D5-E36BE4B66C4B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45DDE51C-F681-46E2-8BE3-8D5CB8CECCEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45DDE51C-F681-46E2-8BE3-8D5CB8CECCEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45DDE51C-F681-46E2-8BE3-8D5CB8CECCEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45DDE51C-F681-46E2-8BE3-8D5CB8CECCEC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

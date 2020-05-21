@@ -6,6 +6,7 @@ using BusinessLogic.Interfaces;
 using Domain.ViewModels.Request;
 using Domain.ViewModels.Response;
 using Microsoft.AspNetCore.Mvc;
+using Utils.SmsC;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -40,7 +41,10 @@ namespace TherapyAPI.Controllers
             if (UserSessionService.GetUserActiveSession(user) != null)
                 UserSessionService.CloseUserActiveSession(user);
 
-            UserSessionService.CreateSession(user);
+            var session = UserSessionService.CreateSession(user);
+
+            var sendSms = SmscHelper.SendSms(user.PhoneNumber, $"Код для входа: {session.AuthCode}");
+            Console.WriteLine(sendSms);
 
             return Ok(new SignInResponse
             {
