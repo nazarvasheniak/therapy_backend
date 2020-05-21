@@ -82,11 +82,12 @@ namespace TherapyAPI
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Therapy API V1");
             });
 
-            //app.UseHttpsRedirection();
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
+            app.UseHttpsRedirection();
 
             app.UseEndpoints(endpoints =>
             {
