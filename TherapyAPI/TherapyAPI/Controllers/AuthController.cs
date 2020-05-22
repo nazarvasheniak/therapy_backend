@@ -32,7 +32,7 @@ namespace TherapyAPI.Controllers
         [HttpPost("sign-up")]
         public IActionResult SignUp([FromBody] SignUpRequest request)
         {
-            var user = UserService.FindByPhoneNumber(request.Phone);
+            var user = UserService.FindByPhoneNumber(request.PhoneNumber);
             if (user != null)
                 return BadRequest(new ResponseModel
                 {
@@ -52,7 +52,7 @@ namespace TherapyAPI.Controllers
             {
                 FirstName = request.FirstName,
                 LastName = request.LastName,
-                PhoneNumber = request.Phone,
+                PhoneNumber = request.PhoneNumber,
                 Email = request.Email,
                 Role = UserRole.Patient
             };
