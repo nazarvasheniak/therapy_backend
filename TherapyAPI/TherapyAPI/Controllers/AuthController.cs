@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BusinessLogic.Interfaces;
+using Domain.Enums;
+using Domain.Models;
 using Domain.ViewModels.Request;
 using Domain.ViewModels.Response;
 using Microsoft.AspNetCore.Mvc;
@@ -26,11 +28,45 @@ namespace TherapyAPI.Controllers
             UserSessionService = userSessionService;
         }
 
+        // api/auth/sign-up
+        [HttpPost("sign-up")]
+        public IActionResult SignUp([FromBody] SignUpRequest request)
+        {
+            var user = UserService.FindByPhoneNumber(request.Phone);
+            if (user != null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Номер телефона уже используется"
+                });
+
+            user = UserService.FindByEmail(request.Email);
+            if (user != null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Email уже используется"
+                });
+
+            user = new User
+            {
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                PhoneNumber = request.Phone,
+                Email = request.Email,
+                Role = UserRole.Patient
+            };
+
+            UserService.Create(user);
+
+            return Ok(new ResponseModel());
+        }
+
         // api/auth/sign-in
         [HttpPost("sign-in")]
         public IActionResult SignIn([FromBody] SignInRequest request)
         {
-            var user = UserService.FindUser(request.PhoneNumber);
+            var user = UserService.FindByPhoneNumber(request.PhoneNumber);
             if (user == null)
                 return NotFound(new ResponseModel
                 {

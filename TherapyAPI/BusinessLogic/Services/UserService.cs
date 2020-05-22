@@ -12,9 +12,14 @@ namespace BusinessLogic.Services
         {
         }
 
-        public User FindUser(string phoneNumber)
+        public User FindByPhoneNumber(string phoneNumber)
         {
             return GetAll().FirstOrDefault(x => x.PhoneNumber == phoneNumber);
+        }
+
+        public User FindByEmail(string email)
+        {
+            return GetAll().FirstOrDefault(x => x.Email == email);
         }
     } 
 }

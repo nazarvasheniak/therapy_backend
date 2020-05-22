@@ -5,6 +5,7 @@ namespace BusinessLogic.Interfaces
 {
     public interface IUserService : IBaseCrudService<User>
     {
-        User FindUser(string phoneNumber);
+        User FindByPhoneNumber(string phoneNumber);
+        User FindByEmail(string email);
     }
 }
