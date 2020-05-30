@@ -8,7 +8,7 @@ namespace Storage.Mappings
     {
         public UserSessionMap()
         {
-            Table("user_sessions");
+            Table("users_sessions");
             Id(u => u.ID, "id");
 
             References(e => e.User, "id_user");

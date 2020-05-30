@@ -19,13 +19,16 @@ namespace TherapyAPI.Controllers
     {
         private IUserService UserService { get; set; }
         private IUserSessionService UserSessionService { get; set; }
+        private IProblemService ProblemService { get; set; }
 
         public AuthController([FromServices]
             IUserService userService,
-            IUserSessionService userSessionService)
+            IUserSessionService userSessionService,
+            IProblemService problemService)
         {
             UserService = userService;
             UserSessionService = userSessionService;
+            ProblemService = problemService;
         }
 
         // api/auth/sign-up
@@ -54,10 +57,18 @@ namespace TherapyAPI.Controllers
                 LastName = request.LastName,
                 PhoneNumber = request.PhoneNumber,
                 Email = request.Email,
-                Role = UserRole.Patient
+                Role = UserRole.Client
             };
 
             UserService.Create(user);
+
+            var problem = new Problem
+            {
+                User = user,
+                ProblemText = request.Problem
+            };
+
+            ProblemService.Create(problem);
 
             return Ok(new ResponseModel());
         }

@@ -11,7 +11,12 @@ namespace BusinessLogic
         {
             container
                 .AddScoped<IUserService, UserService>()
-                .AddScoped<IUserSessionService, UserSessionService>();
+                .AddScoped<IUserSessionService, UserSessionService>()
+                .AddScoped<ISpecialistService, SpecialistService>()
+                .AddScoped<IFileService, FileService>()
+                .AddScoped<IProblemService, ProblemService>()
+                .AddScoped<ISessionService, SessionService>()
+                .AddScoped<IReviewService, ReviewService>();
         }
     }
 }
