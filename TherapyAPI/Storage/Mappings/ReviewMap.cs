@@ -15,7 +15,7 @@ namespace Storage.Mappings
             References(e => e.Session, "id_session");
 
             Map(u => u.Score, "score");
-            Map(u => u.Text, "review_text");
+            Map(u => u.Text, "review_text").CustomSqlType("text").Length(1994967295);
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }
     }
