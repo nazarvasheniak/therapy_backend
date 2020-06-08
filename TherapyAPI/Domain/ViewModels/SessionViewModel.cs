@@ -22,6 +22,7 @@ namespace Domain.ViewModels
                 Specialist = new SpecialistViewModel(session.Specialist);
                 Status = session.Status;
                 Reward = session.Reward;
+                Date = session.Date;
             }
         }
     }

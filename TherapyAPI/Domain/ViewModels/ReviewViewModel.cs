@@ -17,7 +17,7 @@ namespace Domain.ViewModels
                 ID = review.ID;
                 Score = review.Score;
                 Text = review.Text;
-                Session = new SessionViewModel(review.Session);
+                Session = new SessionViewModel(review.Session); 
             }
         }
     }

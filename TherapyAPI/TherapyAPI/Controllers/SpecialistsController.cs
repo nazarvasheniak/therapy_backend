@@ -36,6 +36,24 @@ namespace TherapyAPI.Controllers
             });
         }
 
+        [HttpGet("{id}")]
+        public IActionResult GetSpecialist(long id)
+        {
+            var specialist = SpecialistService.Get(id);
+
+            if (specialist == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Специалист не найден"
+                });
+
+            return Ok(new DataResponse<SpecialistViewModel>
+            {
+                Data = new SpecialistViewModel(specialist)
+            });
+        }
+
         [HttpGet("{id}/reviews")]
         public IActionResult GetSpecialistReviews(long id)
         {
@@ -56,6 +74,26 @@ namespace TherapyAPI.Controllers
             return Ok(new DataResponse<List<ReviewViewModel>>
             {
                 Data = reviews
+            });
+        }
+
+        [HttpGet("{id}/rating")]
+        public IActionResult GetSpecialistRating(long id)
+        {
+            var specialist = SpecialistService.Get(id);
+
+            if (specialist == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Специалист не найден"
+                });
+
+            var rating = ReviewService.GetSpecialistRating(specialist);
+
+            return Ok(new DataResponse<double>
+            {
+                Data = rating
             });
         }
     }
