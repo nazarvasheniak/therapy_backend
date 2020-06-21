@@ -17,7 +17,9 @@ namespace BusinessLogic
                 .AddScoped<IProblemService, ProblemService>()
                 .AddScoped<ISessionService, SessionService>()
                 .AddScoped<IReviewService, ReviewService>()
-                .AddScoped<IArticleService, ArticleService>();
+                .AddScoped<IArticleService, ArticleService>()
+                .AddScoped<IArticleLikeService, ArticleLikeService>()
+                .AddScoped<IArticleCommentService, ArticleCommentService>();
         }
     }
 }

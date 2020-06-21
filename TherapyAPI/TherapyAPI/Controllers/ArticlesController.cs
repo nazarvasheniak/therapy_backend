@@ -20,30 +20,116 @@ namespace TherapyAPI.Controllers
     public class ArticlesController : Controller
     {
         private IArticleService ArticleService { get; set; }
+        private IArticleLikeService ArticleLikeService { get; set; }
+        private IArticleCommentService ArticleCommentService { get; set; }
         private IUserService UserService { get; set; }
         private ISpecialistService SpecialistService { get; set; }
         private IFileService FileService { get; set; }
 
         public ArticlesController([FromServices]
             IArticleService articleService,
+            IArticleLikeService articleLikeService,
+            IArticleCommentService articleCommentService,
             IUserService userService,
             ISpecialistService specialistService,
             IFileService fileService)
         {
             ArticleService = articleService;
+            ArticleLikeService = articleLikeService;
+            ArticleCommentService = articleCommentService;
             UserService = userService;
             SpecialistService = specialistService;
             FileService = fileService;
         }
 
-        [HttpGet]
-        public IActionResult GetArticles()
+        private ArticleViewModel GetFullArticle(long id)
         {
-            var articles = ArticleService.GetAll().Select(x => new ArticleViewModel(x)).ToList();
+            var article = ArticleService.Get(id);
 
-            return Ok(new DataResponse<List<ArticleViewModel>>
+            if (article == null)
+                return null;
+
+            var isLoggedIn = false;
+
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user != null)
+                isLoggedIn = true;
+
+            var likes = ArticleLikeService.GetAll()
+                .Where(x => x.Article == article)
+                .ToList();
+
+            var comments = ArticleCommentService.GetAll()
+                .Where(x => x.Article == article)
+                .ToList();
+
+            var isLiked = false;
+
+            if (isLoggedIn)
             {
-                Data = articles
+                if (likes.FirstOrDefault(x => x.Author == user) != null)
+                {
+                    isLiked = true;
+                }
+            }
+
+            return new ArticleViewModel(article, likes, comments, isLiked);
+        }
+
+        private List<ArticleViewModel> GetFullArticles(GetList query)
+        {
+            var isLoggedIn = false;
+
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user != null)
+                isLoggedIn = true;
+
+            var result = new List<ArticleViewModel>();
+
+            var articles = ArticleService.GetAll()
+                .Skip((query.PageNumber - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .ToList();
+
+            articles.ForEach(article =>
+            {
+                var likes = ArticleLikeService.GetAll()
+                    .Where(x => x.Article == article)
+                    .ToList();
+
+                var comments = ArticleCommentService.GetAll()
+                    .Where(x => x.Article == article)
+                    .ToList();
+
+                var isLiked = false;
+
+                if (isLoggedIn)
+                {
+                    if (likes.FirstOrDefault(x => x.Author == user) != null)
+                    {
+                        isLiked = true;
+                    }
+                }
+
+                result.Add(new ArticleViewModel(article, likes, comments, isLiked));
+            });
+
+            return result;
+        }
+
+        [HttpGet]
+        public IActionResult GetArticles([FromQuery] GetList query)
+        {
+            var all = ArticleService.GetAll().ToList();
+
+            var articles = GetFullArticles(query);
+
+            return Ok(new ListResponse<ArticleViewModel>
+            {
+                Data = articles,
+                PageSize = query.PageSize,
+                CurrentPage = query.PageNumber,
+                TotalPages = (int)Math.Ceiling(all.Count / (double)query.PageSize)
             });
         }
 
@@ -233,6 +319,97 @@ namespace TherapyAPI.Controllers
             return Ok(new DataResponse<ArticleViewModel>
             {
                 Data = new ArticleViewModel(article)
+            });
+        }
+
+        [HttpPost("{id}/like")]
+        [Authorize]
+        public IActionResult LikeArticle(long id)
+        {
+            var article = ArticleService.Get(id);
+
+            if (article == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Статья не найдена"
+                });
+
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var like = ArticleLikeService.GetAll()
+                .FirstOrDefault(x => x.Article == article && x.Author == user);
+
+            if (like != null)
+                ArticleLikeService.Delete(like);
+            else
+                ArticleLikeService.Create(like = new ArticleLike
+                {
+                    Article = article,
+                    Author = user
+                });
+
+            return Ok(new ResponseModel());
+        }
+
+        [HttpPost("{id}/comment")]
+        [Authorize]
+        public IActionResult CommentArticle([FromBody] CreateArticleCommentRequest request, long id)
+        {
+            var article = ArticleService.Get(id);
+
+            if (article == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Статья не найдена"
+                });
+
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            ArticleComment parentComment = null;
+
+            if (request.IsReply && request.ParentCommentID != 0)
+            {
+                parentComment = ArticleCommentService.Get(request.ParentCommentID);
+
+                if (parentComment == null)
+                    return NotFound(new ResponseModel
+                    {
+                        Success = false,
+                        Message = "Комментарий не найден"
+                    });
+            }
+
+
+            var comment = new ArticleComment
+            {
+                Article = article,
+                Author = user,
+                IsReply = request.IsReply,
+                ParentComment = parentComment,
+                Text = request.Text
+            };
+
+            ArticleCommentService.Create(comment);
+
+            return Ok(new DataResponse<ArticleCommentViewModel>
+            {
+                Data = new ArticleCommentViewModel(comment)
             });
         }
     }
