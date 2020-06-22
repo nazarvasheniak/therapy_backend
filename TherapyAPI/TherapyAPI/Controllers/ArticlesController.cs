@@ -80,9 +80,15 @@ namespace TherapyAPI.Controllers
         {
             var isLoggedIn = false;
 
-            var user = UserService.Get(long.Parse(User.Identity.Name));
-            if (user != null)
-                isLoggedIn = true;
+            User user = null;
+
+            if (User.Identity.Name != null)
+            {
+                user = UserService.Get(long.Parse(User.Identity.Name));
+
+                if (user != null)
+                    isLoggedIn = true;
+            }
 
             var result = new List<ArticleViewModel>();
 
