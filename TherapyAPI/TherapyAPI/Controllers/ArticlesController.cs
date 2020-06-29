@@ -51,17 +51,21 @@ namespace TherapyAPI.Controllers
 
             var isLoggedIn = false;
 
-            var user = UserService.Get(long.Parse(User.Identity.Name));
-            if (user != null)
-                isLoggedIn = true;
+            User user = null;
+
+            if (User.Identity.Name != null)
+            {
+                user = UserService.Get(long.Parse(User.Identity.Name));
+
+                if (user != null)
+                    isLoggedIn = true;
+            }
 
             var likes = ArticleLikeService.GetAll()
                 .Where(x => x.Article == article)
                 .ToList();
 
-            var comments = ArticleCommentService.GetAll()
-                .Where(x => x.Article == article)
-                .ToList();
+            var comments = ArticleCommentService.GetArticleComments(article);
 
             var isLiked = false;
 
@@ -182,7 +186,7 @@ namespace TherapyAPI.Controllers
         [HttpGet("{id}")]
         public IActionResult GetArticle(long id)
         {
-            var article = ArticleService.Get(id);
+            var article = GetFullArticle(id);
 
             if (article == null)
                 return NotFound(new ResponseModel
@@ -193,7 +197,7 @@ namespace TherapyAPI.Controllers
 
             return Ok(new DataResponse<ArticleViewModel>
             {
-                Data = new ArticleViewModel(article)
+                Data = article
             });
         }
 
@@ -240,6 +244,13 @@ namespace TherapyAPI.Controllers
                 {
                     Success = false,
                     Message = "Изображение не найдено"
+                });
+
+            if (request.ShortText.Length > 65535)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Слишком длинный текст превью"
                 });
 
             var article = new Article
@@ -401,6 +412,13 @@ namespace TherapyAPI.Controllers
                     });
             }
 
+            if (request.Text.Length > 65535)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Длина комментария больше допустимой"
+                });
+
 
             var comment = new ArticleComment
             {
@@ -408,7 +426,8 @@ namespace TherapyAPI.Controllers
                 Author = user,
                 IsReply = request.IsReply,
                 ParentComment = parentComment,
-                Text = request.Text
+                Text = request.Text,
+                Date = DateTime.UtcNow
             };
 
             ArticleCommentService.Create(comment);

@@ -49,5 +49,22 @@ namespace Domain.ViewModels
                 IsLiked = isLiked;
             }
         }
+
+        public ArticleViewModel(Article article, IEnumerable<ArticleLike> likes, IEnumerable<ArticleCommentViewModel> comments, bool isLiked)
+        {
+            if (article != null)
+            {
+                ID = article.ID;
+                Title = article.Title;
+                Image = new FileViewModel(article.Image);
+                ShortText = article.ShortText;
+                Text = Encoding.UTF8.GetString(article.Text);
+                Author = new SpecialistViewModel(article.Author);
+                Date = article.Date;
+                Likes = likes.Select(x => new ArticleLikeViewModel(x)).ToList();
+                Comments = comments.ToList();
+                IsLiked = isLiked;
+            }
+        }
     }
 }

@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using BusinessLogic.Interfaces;
 using Domain.Models;
+using Domain.ViewModels;
 using Storage.Interfaces;
 
 namespace BusinessLogic.Services
@@ -9,6 +12,27 @@ namespace BusinessLogic.Services
     {
         public ArticleCommentService(IRepository<ArticleComment> repository) : base(repository)
         {
+        }
+
+        public List<ArticleCommentViewModel> GetArticleComments(Article article)
+        {
+            var result = new List<ArticleCommentViewModel>();
+            var comments = GetAll().Where(x => x.Article == article).ToList();
+
+            comments.ForEach(comment =>
+            {
+                var replies = GetCommentReplies(comment);
+                result.Add(new ArticleCommentViewModel(comment, replies));
+            });
+
+            return result;
+        }
+
+        public List<ArticleCommentViewModel> GetCommentReplies(ArticleComment comment)
+        {
+            return GetAll().Where(x => x.IsReply && x.ParentComment == comment)
+                .Select(x => new ArticleCommentViewModel(x, GetCommentReplies(x)))
+                .ToList();
         }
     }
 }
