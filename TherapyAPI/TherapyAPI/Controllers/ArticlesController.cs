@@ -394,7 +394,10 @@ namespace TherapyAPI.Controllers
                     Message = "Статья не найдена"
                 });
 
-            var user = UserService.Get(long.Parse(User.Identity.Name));
+            User user = null;
+
+            if (User.Identity.Name != null)
+                user = UserService.Get(long.Parse(User.Identity.Name));
 
             if (user == null)
                 return NotFound(new ResponseModel
@@ -431,7 +434,10 @@ namespace TherapyAPI.Controllers
                     Message = "Статья не найдена"
                 });
 
-            var user = UserService.Get(long.Parse(User.Identity.Name));
+            User user = null;
+
+            if (User.Identity.Name != null)
+                user = UserService.Get(long.Parse(User.Identity.Name));
 
             if (user == null)
                 return NotFound(new ResponseModel
