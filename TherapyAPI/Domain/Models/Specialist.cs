@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using Domain.ViewModels;
+
 namespace Domain.Models
 {
     public class Specialist : PersistentObject, IDeletableObject

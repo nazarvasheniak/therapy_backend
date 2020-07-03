@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BusinessLogic.Interfaces;
+using Domain.Models;
 using Domain.ViewModels;
+using Domain.ViewModels.Request;
 using Domain.ViewModels.Response;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,21 +27,68 @@ namespace TherapyAPI.Controllers
             ReviewService = reviewService;
         }
 
-        [HttpGet]
-        public IActionResult GetSpecialists()
+        private SpecialistViewModel GetFullSpecialist(long id)
         {
-            var specialists = SpecialistService.GetAll().Select(x => new SpecialistViewModel(x)).ToList();
+            var specialist = SpecialistService.Get(id);
 
-            return Ok(new DataResponse<List<SpecialistViewModel>>
+            if (specialist == null)
+                return null;
+
+            var reviews = ReviewService.GetAll()
+                .Where(x => x.Session.Specialist == specialist)
+                .Select(x => new ReviewViewModel(x))
+                .ToList();
+
+            var rating = ReviewService.GetSpecialistRating(specialist);
+
+            return new SpecialistViewModel(specialist, rating, reviews);
+        }
+
+        private SpecialistViewModel GetFullSpecialist(Specialist specialist)
+        {
+            var reviews = ReviewService.GetAll()
+                .Where(x => x.Session.Specialist == specialist)
+                .Select(x => new ReviewViewModel(x))
+                .ToList();
+
+            var rating = ReviewService.GetSpecialistRating(specialist);
+
+            return new SpecialistViewModel(specialist, rating, reviews);
+        }
+
+        private List<SpecialistViewModel> GetFullSpecialists(GetList query)
+        {
+            var result = new List<SpecialistViewModel>();
+
+            var specialists = SpecialistService.GetAll()
+                .Skip((query.PageNumber - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .ToList();
+
+            specialists.ForEach(specialist => result.Add(GetFullSpecialist(specialist)));
+
+            return result;
+        }
+
+        [HttpGet]
+        public IActionResult GetSpecialists([FromQuery] GetList query)
+        {
+            var all = SpecialistService.GetAll().ToList();
+            var specialists = GetFullSpecialists(query);
+
+            return Ok(new ListResponse<SpecialistViewModel>
             {
-                Data = specialists
+                Data = specialists,
+                PageSize = query.PageSize,
+                CurrentPage = query.PageNumber,
+                TotalPages = (int)Math.Ceiling(all.Count / (double)query.PageSize)
             });
         }
 
         [HttpGet("{id}")]
         public IActionResult GetSpecialist(long id)
         {
-            var specialist = SpecialistService.Get(id);
+            var specialist = GetFullSpecialist(id);
 
             if (specialist == null)
                 return NotFound(new ResponseModel
@@ -50,50 +99,7 @@ namespace TherapyAPI.Controllers
 
             return Ok(new DataResponse<SpecialistViewModel>
             {
-                Data = new SpecialistViewModel(specialist)
-            });
-        }
-
-        [HttpGet("{id}/reviews")]
-        public IActionResult GetSpecialistReviews(long id)
-        {
-            var specialist = SpecialistService.Get(id);
-
-            if (specialist == null)
-                return NotFound(new ResponseModel
-                {
-                    Success = false,
-                    Message = "Специалист не найден"
-                });
-
-            var reviews = ReviewService.GetAll()
-                .Where(x => x.Session.Specialist == specialist)
-                .Select(x => new ReviewViewModel(x))
-                .ToList();
-
-            return Ok(new DataResponse<List<ReviewViewModel>>
-            {
-                Data = reviews
-            });
-        }
-
-        [HttpGet("{id}/rating")]
-        public IActionResult GetSpecialistRating(long id)
-        {
-            var specialist = SpecialistService.Get(id);
-
-            if (specialist == null)
-                return NotFound(new ResponseModel
-                {
-                    Success = false,
-                    Message = "Специалист не найден"
-                });
-
-            var rating = ReviewService.GetSpecialistRating(specialist);
-
-            return Ok(new DataResponse<double>
-            {
-                Data = rating
+                Data = specialist
             });
         }
     }

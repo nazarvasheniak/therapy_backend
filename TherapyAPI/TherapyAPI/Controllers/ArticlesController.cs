@@ -80,6 +80,39 @@ namespace TherapyAPI.Controllers
             return new ArticleViewModel(article, likes, comments, isLiked);
         }
 
+        private ArticleViewModel GetFullArticle(Article article)
+        {
+            var isLoggedIn = false;
+
+            User user = null;
+
+            if (User.Identity.Name != null)
+            {
+                user = UserService.Get(long.Parse(User.Identity.Name));
+
+                if (user != null)
+                    isLoggedIn = true;
+            }
+
+            var likes = ArticleLikeService.GetAll()
+                .Where(x => x.Article == article)
+                .ToList();
+
+            var comments = ArticleCommentService.GetArticleComments(article);
+
+            var isLiked = false;
+
+            if (isLoggedIn)
+            {
+                if (likes.FirstOrDefault(x => x.Author == user) != null)
+                {
+                    isLiked = true;
+                }
+            }
+
+            return new ArticleViewModel(article, likes, comments, isLiked);
+        }
+
         private List<ArticleViewModel> GetFullArticles(GetList query)
         {
             var isLoggedIn = false;
@@ -145,7 +178,7 @@ namespace TherapyAPI.Controllers
 
         [HttpGet("my")]
         [Authorize]
-        public IActionResult GetMyArticles()
+        public IActionResult GetMyArticles([FromQuery] GetList query)
         {
             var user = UserService.Get(long.Parse(User.Identity.Name));
 
@@ -172,14 +205,23 @@ namespace TherapyAPI.Controllers
                     Message = "Ошибка доступа"
                 });
 
-            var articles = ArticleService.GetAll()
+            var all = ArticleService.GetAll()
                 .Where(x => x.Author == specialist)
-                .Select(x => new ArticleViewModel(x))
                 .ToList();
 
-            return Ok(new DataResponse<List<ArticleViewModel>>
+            var articles = ArticleService.GetAll()
+                .Where(x => x.Author == specialist)
+                .Skip((query.PageNumber - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .Select(x => GetFullArticle(x))
+                .ToList();
+
+            return Ok(new ListResponse<ArticleViewModel>
             {
-                Data = articles
+                Data = articles,
+                PageSize = query.PageSize,
+                CurrentPage = query.PageNumber,
+                TotalPages = (int)Math.Ceiling(all.Count / (double)query.PageSize)
             });
         }
 

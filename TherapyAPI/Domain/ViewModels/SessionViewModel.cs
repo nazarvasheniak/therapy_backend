@@ -25,5 +25,18 @@ namespace Domain.ViewModels
                 Date = session.Date;
             }
         }
+
+        public SessionViewModel(Session session, SpecialistViewModel specialist)
+        {
+            if (session != null)
+            {
+                ID = session.ID;
+                Problem = new ProblemViewModel(session.Problem);
+                Specialist = specialist;
+                Status = session.Status;
+                Reward = session.Reward;
+                Date = session.Date;
+            }
+        }
     }
 }
