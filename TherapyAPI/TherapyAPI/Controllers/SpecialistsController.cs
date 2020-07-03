@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BusinessLogic.Interfaces;
+using Domain.Enums;
 using Domain.Models;
 using Domain.ViewModels;
 using Domain.ViewModels.Request;
@@ -101,6 +102,29 @@ namespace TherapyAPI.Controllers
             {
                 Data = specialist
             });
+        }
+
+        [HttpGet("{id}/reviews")]
+        public IActionResult GetSpecialistReviews([FromQuery] GetReviews query, long id)
+        {
+            var specialist = SpecialistService.Get(id);
+
+            if (specialist == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Специалист не найден"
+                });
+
+            var reviews = ReviewService.GetSpecialistReviews(specialist, query.Type);
+
+            return Ok(new ListResponse<ReviewViewModel>
+            {
+                Data = reviews.Skip((query.PageNumber - 1) * query.PageSize).Take(query.PageSize).ToList(),
+                PageSize = query.PageSize,
+                CurrentPage = query.PageNumber,
+                TotalPages = (int)Math.Ceiling(reviews.Count / (double)query.PageSize)
+            });                    
         }
     }
 }

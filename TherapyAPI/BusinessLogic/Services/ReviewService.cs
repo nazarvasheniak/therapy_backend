@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using BusinessLogic.Interfaces;
+using Domain.Enums;
 using Domain.Models;
+using Domain.ViewModels;
 using Storage.Interfaces;
 
 namespace BusinessLogic.Services
@@ -23,6 +26,36 @@ namespace BusinessLogic.Services
             double result = scoreSum / reviews.Count;
 
             return result;
+        }
+
+        public List<ReviewViewModel> GetSpecialistReviews(Specialist specialist, ReviewType type)
+        {
+            switch (type)
+            {
+                case ReviewType.Positive:
+                    return GetAll()
+                        .Where(x => x.Session.Specialist == specialist && x.Score > 3)
+                        .Select(x => new ReviewViewModel(x))
+                        .ToList();
+
+                case ReviewType.Neutral:
+                    return GetAll()
+                        .Where(x => x.Session.Specialist == specialist && x.Score == 3)
+                        .Select(x => new ReviewViewModel(x))
+                        .ToList();
+
+                case ReviewType.Negative:
+                    return GetAll()
+                        .Where(x => x.Session.Specialist == specialist && x.Score < 3)
+                        .Select(x => new ReviewViewModel(x))
+                        .ToList();
+
+                default:
+                    return GetAll()
+                        .Where(x => x.Session.Specialist == specialist)
+                        .Select(x => new ReviewViewModel(x))
+                        .ToList();
+            }
         }
     }
 }
