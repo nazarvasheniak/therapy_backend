@@ -88,6 +88,32 @@ namespace TherapyAPI.Controllers
             });
         }
 
+        [HttpPost("problems")]
+        public IActionResult CreateProblem([FromBody] CreateProblemRequest request)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var problem = new Problem
+            {
+                User = user,
+                ProblemText = request.ProblemText
+            };
+
+            ProblemService.Create(problem);
+
+            return Ok(new DataResponse<ProblemViewModel>
+            {
+                Data = new ProblemViewModel(problem)
+            });
+        }
+
         [HttpGet("problems/{id}/sessions")]
         public IActionResult GetProblemSessions(long id)
         {
