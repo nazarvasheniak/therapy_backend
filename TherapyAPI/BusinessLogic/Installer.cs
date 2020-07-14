@@ -12,6 +12,7 @@ namespace BusinessLogic
             container
                 .AddScoped<IUserService, UserService>()
                 .AddScoped<IUserSessionService, UserSessionService>()
+                .AddScoped<IUserWalletService, UserWalletService>()
                 .AddScoped<ISpecialistService, SpecialistService>()
                 .AddScoped<IFileService, FileService>()
                 .AddScoped<IProblemService, ProblemService>()
