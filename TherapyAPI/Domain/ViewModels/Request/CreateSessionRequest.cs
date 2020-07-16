@@ -1,11 +1,8 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
-
 namespace Domain.ViewModels.Request
 {
-    public class SetProblemSpecialistRequest
+    public class CreateSessionRequest
     {
-        [Required]
         public long SpecialistID { get; set; }
     }
 }

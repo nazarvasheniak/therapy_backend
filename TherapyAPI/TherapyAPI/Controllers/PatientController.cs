@@ -25,19 +25,22 @@ namespace TherapyAPI.Controllers
         private ISessionService SessionService { get; set; }
         private ISpecialistService SpecialistService { get; set; }
         private IReviewService ReviewService { get; set; }
+        private IUserWalletService UserWalletService { get; set; }
 
         public PatientController([FromServices]
             IUserService userService,
             IProblemService problemService,
             ISessionService sessionService,
             ISpecialistService specialistService,
-            IReviewService reviewService)
+            IReviewService reviewService,
+            IUserWalletService userWalletService)
         {
             UserService = userService;
             ProblemService = problemService;
             SessionService = sessionService;
             SpecialistService = specialistService;
             ReviewService = ReviewService;
+            UserWalletService = userWalletService;
         }
 
         private SpecialistViewModel GetFullSpecialist(long id)
@@ -183,8 +186,8 @@ namespace TherapyAPI.Controllers
             });
         }
 
-        [HttpPost("problems/{id}/specialist")]
-        public IActionResult SetProblemSpecialist([FromBody] SetProblemSpecialistRequest request, long id)
+        [HttpPost("problems/{id}/sessions")]
+        public IActionResult CreateProblemSession([FromBody] CreateSessionRequest request, long id)
         {
             var user = UserService.Get(long.Parse(User.Identity.Name));
 
@@ -217,12 +220,118 @@ namespace TherapyAPI.Controllers
             {
                 Specialist = specialist,
                 Problem = problem,
-                Date = DateTime.UtcNow,
                 Reward = specialist.Price,
-                Status = SessionStatus.Started
+                Status = SessionStatus.Waiting
             };
 
             SessionService.Create(session);
+
+            return Ok(new CreateSessionResponse
+            {
+                SessionID = session.ID
+            });
+        }
+
+        [HttpPost("problems/{id}/sessions/{sessionID}/start")]
+        public IActionResult StartSession(long id, long sessionID)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var problem = ProblemService.Get(id);
+            if (problem == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Проблема не найдена"
+                });
+
+            var session = SessionService.Get(sessionID);
+            if (session == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Сессия не найдена"
+                });
+
+            if (session.Specialist == null)
+                return Ok(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Не выбран специалист"
+                });
+
+            var wallet = UserWalletService.GetUserWallet(user);
+            if (wallet == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Кошелек не найден"
+                });
+
+            var activeSessions = SessionService.GetActiveSessions(user);
+            var lockedBalance = activeSessions.Sum(x => x.Reward);
+
+            if ((wallet.Balance - lockedBalance) < session.Reward)
+                return Ok(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Недостаточно средств"
+                });
+
+            session.Status = SessionStatus.Started;
+            session.Date = DateTime.UtcNow;
+
+            SessionService.Update(session);
+
+            return Ok(new ResponseModel());
+        }
+
+        [HttpPut("problems/{id}/sessions/{sessionID}")]
+        public IActionResult ChangeSessionSpecialist([FromBody] CreateSessionRequest request, long id, long sessionID)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var problem = ProblemService.Get(id);
+            if (problem == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Проблема не найдена"
+                });
+
+            var session = SessionService.Get(sessionID);
+            if (session == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Сессия не найдена"
+                });
+
+            var specialist = SpecialistService.Get(request.SpecialistID);
+            if (specialist == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Специалист не найден"
+                });
+
+            session.Specialist = specialist;
+            session.Reward = specialist.Price;
+            session.Status = SessionStatus.Waiting;
+
+            SessionService.Update(session);
 
             return Ok(new ResponseModel());
         }

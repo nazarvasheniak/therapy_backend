@@ -13,5 +13,9 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="SmsC\" />
+    <Folder Include="SberbankAcquiring\" />
+    <Folder Include="SberbankAcquiring\Models\" />
+    <Folder Include="SberbankAcquiring\Models\Request\" />
+    <Folder Include="SberbankAcquiring\Models\Response\" />
   </ItemGroup>
 </Project>
