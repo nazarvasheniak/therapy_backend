@@ -125,7 +125,10 @@ namespace TherapyAPI.Controllers
                         Message = "Платеж выполнен, но указанная сессия не найдена"
                     });
 
+                session.Date = DateTime.UtcNow;
+                session.Status = SessionStatus.Started;
 
+                SessionService.Update(session);
             }
 
             return Redirect("http://localhost:4200/#/profile?deposit=success");

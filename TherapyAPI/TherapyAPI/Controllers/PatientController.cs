@@ -150,14 +150,12 @@ namespace TherapyAPI.Controllers
         public IActionResult GetProblemSessions(long id)
         {
             var user = UserService.Get(long.Parse(User.Identity.Name));
-
             if (user == null)
                 return NotFound(new ResponseModel
                 {
                     Success = false,
                     Message = "Пользователь не найден"
                 });
-
             var problem = ProblemService.Get(id);
 
             if (problem == null)
@@ -183,6 +181,46 @@ namespace TherapyAPI.Controllers
             return Ok(new DataResponse<List<SessionViewModel>>
             {
                 Data = sessions
+            });
+        }
+
+        [HttpGet("problems/{id}/activeSession")]
+        public IActionResult GetProblremActiveSession(long id)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var problem = ProblemService.Get(id);
+            if (problem == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Проблема не найдена"
+                });
+
+            if (problem.User != user)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Доступ запрещен"
+                });
+
+            var session = SessionService.GetWaitingSession(problem);
+            if (session == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Сессия не найдена"
+                });
+
+            return Ok(new DataResponse<SessionViewModel>
+            {
+                Data = new SessionViewModel(session)
             });
         }
 

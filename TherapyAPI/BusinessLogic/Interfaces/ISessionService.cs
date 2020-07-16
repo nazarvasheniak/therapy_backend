@@ -7,5 +7,6 @@ namespace BusinessLogic.Interfaces
     public interface ISessionService : IBaseCrudService<Session>
     {
         List<Session> GetActiveSessions(User user);
+        Session GetWaitingSession(Problem problem);
     }
 }

@@ -18,5 +18,10 @@ namespace BusinessLogic.Services
         {
             return GetAll().Where(x => x.Problem.User == user && x.Status == SessionStatus.Started).ToList();
         }
+
+        public Session GetWaitingSession(Problem problem)
+        {
+            return GetAll().FirstOrDefault(x => x.Problem == problem && x.Status == SessionStatus.Waiting);
+        }
     }
 }
