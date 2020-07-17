@@ -17,7 +17,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace TherapyAPI.Controllers
 {
     [Route("api/patient")]
-    [Authorize]
     public class PatientController : Controller
     {
         private IUserService UserService { get; set; }
@@ -156,8 +155,8 @@ namespace TherapyAPI.Controllers
                     Success = false,
                     Message = "Пользователь не найден"
                 });
-            var problem = ProblemService.Get(id);
 
+            var problem = ProblemService.Get(id);
             if (problem == null)
                 return NotFound(new ResponseModel
                 {
@@ -181,6 +180,53 @@ namespace TherapyAPI.Controllers
             return Ok(new DataResponse<List<SessionViewModel>>
             {
                 Data = sessions
+            });
+        }
+
+        [HttpGet("problems/{id}/sessions/{sessionID}")]
+        public IActionResult GetSession(long id, long sessionID)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var problem = ProblemService.Get(id);
+            if (problem == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Проблема не найдена"
+                });
+
+            if (problem.User != user)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Доступ запрещен"
+                });
+
+            var session = SessionService.Get(sessionID);
+            if (session == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Сессия не найдена"
+                });
+
+            if (session.Problem != problem)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Доступ запрещен"
+                });
+
+            return Ok(new DataResponse<SessionViewModel>
+            {
+                Data = new SessionViewModel(session)
             });
         }
 
@@ -270,6 +316,50 @@ namespace TherapyAPI.Controllers
             });
         }
 
+        [HttpPut("problems/{id}/sessions/{sessionID}")]
+        public IActionResult ChangeSessionSpecialist([FromBody] CreateSessionRequest request, long id, long sessionID)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var problem = ProblemService.Get(id);
+            if (problem == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Проблема не найдена"
+                });
+
+            var session = SessionService.Get(sessionID);
+            if (session == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Сессия не найдена"
+                });
+
+            var specialist = SpecialistService.Get(request.SpecialistID);
+            if (specialist == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Специалист не найден"
+                });
+
+            session.Specialist = specialist;
+            session.Reward = specialist.Price;
+            session.Status = SessionStatus.Waiting;
+
+            SessionService.Update(session);
+
+            return Ok(new ResponseModel());
+        }
+
         [HttpPost("problems/{id}/sessions/{sessionID}/start")]
         public IActionResult StartSession(long id, long sessionID)
         {
@@ -330,8 +420,8 @@ namespace TherapyAPI.Controllers
             return Ok(new ResponseModel());
         }
 
-        [HttpPut("problems/{id}/sessions/{sessionID}")]
-        public IActionResult ChangeSessionSpecialist([FromBody] CreateSessionRequest request, long id, long sessionID)
+        [HttpPost("problems/{id}/sessions/{sessionID}/close")]
+        public IActionResult CloseSession(long id, long sessionID)
         {
             var user = UserService.Get(long.Parse(User.Identity.Name));
             if (user == null)
@@ -357,19 +447,63 @@ namespace TherapyAPI.Controllers
                     Message = "Сессия не найдена"
                 });
 
-            var specialist = SpecialistService.Get(request.SpecialistID);
-            if (specialist == null)
+            var wallet = UserWalletService.GetUserWallet(user);
+            if (wallet == null)
                 return NotFound(new ResponseModel
                 {
                     Success = false,
-                    Message = "Специалист не найден"
+                    Message = "Кошелек не найден"
                 });
 
+            wallet.Balance -= session.Reward;
+            UserWalletService.Update(wallet);
+
+            session.Status = SessionStatus.Success;
+            SessionService.Update(session);
+
+            return Ok(new ResponseModel());
+        }
+
+        [HttpPost("problems/{id}/sessions/{sessionID}/review")]
+        public IActionResult CreateReview([FromBody] CreateReviewRequest request, long id, long sessionID)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var problem = ProblemService.Get(id);
+            if (problem == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Проблема не найдена"
+                });
+
+            var session = SessionService.Get(sessionID);
+            if (session == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Сессия не найдена"
+                });
+
+            var specialist = SpecialistService.Get(session.Specialist.ID);
             session.Specialist = specialist;
-            session.Reward = specialist.Price;
-            session.Status = SessionStatus.Waiting;
 
             SessionService.Update(session);
+
+            var review = new Review
+            {
+                Session = session,
+                Text = request.ReviewText,
+                Score = request.Score
+            };
+
+            ReviewService.Create(review);
 
             return Ok(new ResponseModel());
         }
