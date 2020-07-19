@@ -38,7 +38,7 @@ namespace TherapyAPI.Controllers
             ProblemService = problemService;
             SessionService = sessionService;
             SpecialistService = specialistService;
-            ReviewService = ReviewService;
+            ReviewService = reviewService;
             UserWalletService = userWalletService;
         }
 

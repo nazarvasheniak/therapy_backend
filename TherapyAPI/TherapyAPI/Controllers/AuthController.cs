@@ -20,15 +20,18 @@ namespace TherapyAPI.Controllers
         private IUserService UserService { get; set; }
         private IUserSessionService UserSessionService { get; set; }
         private IProblemService ProblemService { get; set; }
+        private IUserWalletService UserWalletService { get; set; }
 
         public AuthController([FromServices]
             IUserService userService,
             IUserSessionService userSessionService,
-            IProblemService problemService)
+            IProblemService problemService,
+            IUserWalletService userWalletService)
         {
             UserService = userService;
             UserSessionService = userSessionService;
             ProblemService = problemService;
+            UserWalletService = userWalletService;
         }
 
         // api/auth/sign-up
@@ -62,15 +65,25 @@ namespace TherapyAPI.Controllers
 
             UserService.Create(user);
 
-            var problem = new Problem
+            UserWalletService.Create(new UserWallet
+            {
+                User = user,
+                Balance = 0
+            });
+
+            ProblemService.Create(new Problem
             {
                 User = user,
                 ProblemText = request.Problem
-            };
+            });
 
-            ProblemService.Create(problem);
+            var session = UserSessionService.CreateSession(user);
+            SmscHelper.SendSms(user.PhoneNumber, $"Код для входа: {session.AuthCode}");
 
-            return Ok(new ResponseModel());
+            return Ok(new SignInResponse
+            {
+                UserID = user.ID
+            });
         }
 
         // api/auth/sign-in
@@ -82,7 +95,7 @@ namespace TherapyAPI.Controllers
                 return NotFound(new ResponseModel
                 {
                     Success = false,
-                    Message = "Пользователь не найден"
+                    Message = "Номер телефона не зарегистрирован"
                 });
 
             if (UserSessionService.GetUserActiveSession(user) != null)
@@ -90,8 +103,7 @@ namespace TherapyAPI.Controllers
 
             var session = UserSessionService.CreateSession(user);
 
-            var sendSms = SmscHelper.SendSms(user.PhoneNumber, $"Код для входа: {session.AuthCode}");
-            Console.WriteLine(sendSms);
+            SmscHelper.SendSms(user.PhoneNumber, $"Код для входа: {session.AuthCode}");
 
             return Ok(new SignInResponse
             {
@@ -131,6 +143,36 @@ namespace TherapyAPI.Controllers
             return Ok(new SignInConfirmResponse
             {
                 Token = token
+            });
+        }
+
+        [HttpPost("sign-in/confirm/resend")]
+        public IActionResult ResendConfirmCode([FromBody] ResendConfirmCodeRequest request)
+        {
+            var user = UserService.Get(request.UserID);
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var session = UserSessionService.GetUserActiveSession(user);
+            if (session == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Сессия не найдена"
+                });
+
+            UserSessionService.CloseUserActiveSession(user);
+            session = UserSessionService.CreateSession(user);
+
+            SmscHelper.SendSms(user.PhoneNumber, $"Код для входа: {session.AuthCode}");
+
+            return Ok(new SignInResponse
+            {
+                UserID = user.ID
             });
         }
     }
