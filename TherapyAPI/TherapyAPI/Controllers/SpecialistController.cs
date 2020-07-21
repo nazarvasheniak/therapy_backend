@@ -149,5 +149,35 @@ namespace TherapyAPI.Controllers
 
             return Ok(new ResponseModel());
         }
+
+        [HttpGet("sessions/active")]
+        public IActionResult GetActiveSession()
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var specialist = SpecialistService.GetSpecialistFromUser(user);
+            if (specialist == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Специалист не найден"
+                });
+
+            var sessions = SessionService.GetSpecialistSessions(specialist)
+                .Where(x => x.Status == SessionStatus.Started)
+                .Select(x => new SessionViewModel(x))
+                .ToList();
+
+            return Ok(new DataResponse<List<SessionViewModel>>
+            {
+                Data = sessions
+            });
+        }
     }
 }
