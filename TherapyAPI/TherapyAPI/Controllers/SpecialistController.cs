@@ -6,6 +6,7 @@ using BusinessLogic.Interfaces;
 using Domain.Enums;
 using Domain.Models;
 using Domain.ViewModels;
+using Domain.ViewModels.Request;
 using Domain.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -122,6 +123,31 @@ namespace TherapyAPI.Controllers
             {
                 Data = profile
             });
+        }
+
+        [HttpPost("price")]
+        public IActionResult ChangePrice([FromBody] ChangeSpecialistPriceRequest request)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var specialist = SpecialistService.GetSpecialistFromUser(user);
+            if (specialist == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Специалист не найден"
+                });
+
+            specialist.Price = request.Price;
+            SpecialistService.Update(specialist);
+
+            return Ok(new ResponseModel());
         }
     }
 }
