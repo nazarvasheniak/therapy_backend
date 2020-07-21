@@ -26,5 +26,23 @@ namespace Utils.SmsC
 
            return await response.Content.ReadAsStringAsync();
         }
+
+        public static async Task<string> GetNumberInfo(string phone)
+        {
+            var qb = new QueryBuilder();
+            qb.Add("get_operator", "1");
+            qb.Add("login", "tkslovo");
+            qb.Add("psw", "Kpy4KWcc#En");
+            qb.Add("phone", phone);
+
+            var baseUri = new Uri("https://smsc.ru/sys/info.php").GetComponents(UriComponents.Scheme | UriComponents.Host | UriComponents.Port | UriComponents.Path, UriFormat.UriEscaped);
+            var fullUri = baseUri + qb.ToQueryString();
+
+            var client = new HttpClient();
+            var response = await client.GetAsync(fullUri);
+
+
+            return await response.Content.ReadAsStringAsync();
+        }
     }
 }

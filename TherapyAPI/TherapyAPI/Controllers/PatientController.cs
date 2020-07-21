@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace TherapyAPI.Controllers
 {
     [Route("api/patient")]
+    [Authorize]
     public class PatientController : Controller
     {
         private IUserService UserService { get; set; }
@@ -95,6 +96,9 @@ namespace TherapyAPI.Controllers
         [HttpGet("problems/{id}")]
         public IActionResult GetProblem(long id)
         {
+            if (User.Identity.Name == null)
+                return Ok();
+
             var user = UserService.Get(long.Parse(User.Identity.Name));
 
             if (user == null)

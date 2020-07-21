@@ -175,5 +175,12 @@ namespace TherapyAPI.Controllers
                 UserID = user.ID
             });
         }
+
+        [HttpGet("getnumberinfo")]
+        public async Task<IActionResult> GetNumberInfo([FromQuery] string phone)
+        {
+            var info = await SmscHelper.GetNumberInfo(phone);
+            return Ok(info);
+        }
     }
 }
