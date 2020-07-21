@@ -23,5 +23,10 @@ namespace BusinessLogic.Services
         {
             return GetAll().FirstOrDefault(x => x.Problem == problem && x.Status == SessionStatus.Waiting);
         }
+
+        public List<Session> GetSpecialistSessions(Specialist specialist)
+        {
+            return GetAll().Where(x => x.Specialist == specialist).ToList();
+        }
     }
 }

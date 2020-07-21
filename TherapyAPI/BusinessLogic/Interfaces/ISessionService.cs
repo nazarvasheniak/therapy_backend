@@ -8,5 +8,6 @@ namespace BusinessLogic.Interfaces
     {
         List<Session> GetActiveSessions(User user);
         Session GetWaitingSession(Problem problem);
+        List<Session> GetSpecialistSessions(Specialist specialist);
     }
 }
