@@ -10,5 +10,6 @@ namespace BusinessLogic.Interfaces
     {
         double GetSpecialistRating(Specialist specialist);
         List<ReviewViewModel> GetSpecialistReviews(Specialist specialist, ReviewType type);
+        Review GetSessionReview(Session session);
     }
 }

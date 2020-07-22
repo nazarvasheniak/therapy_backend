@@ -57,5 +57,10 @@ namespace BusinessLogic.Services
                         .ToList();
             }
         }
+
+        public Review GetSessionReview(Session session)
+        {
+            return GetAll().FirstOrDefault(x => x.Session == session);
+        }
     }
 }

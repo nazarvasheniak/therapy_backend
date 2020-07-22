@@ -3,9 +3,8 @@ using Domain.Models;
 
 namespace Domain.ViewModels
 {
-    public class ArticleLikeViewModel
+    public class ArticleLikeViewModel : BaseViewModel
     {
-        public long ID { get; set; }
         public UserViewModel Author { get; set; }
 
         public ArticleLikeViewModel(ArticleLike like)

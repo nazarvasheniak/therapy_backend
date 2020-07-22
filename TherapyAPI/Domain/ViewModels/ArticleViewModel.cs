@@ -6,9 +6,8 @@ using Domain.Models;
 
 namespace Domain.ViewModels
 {
-    public class ArticleViewModel
+    public class ArticleViewModel : BaseViewModel
     {
-        public long ID { get; set; }
         public string Title { get; set; }
         public FileViewModel Image { get; set; }
         public string ShortText { get; set; }

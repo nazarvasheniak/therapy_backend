@@ -28,5 +28,15 @@ namespace BusinessLogic.Services
         {
             return GetAll().Where(x => x.Specialist == specialist).ToList();
         }
+
+        public List<User> GetSpecialistClients(Specialist specialist)
+        {
+            var list = new HashSet<User>();
+            var sessions = GetAll().Where(x => x.Specialist == specialist).ToList();
+
+            sessions.ForEach(x => list.Add(x.Problem.User));
+
+            return list.ToList();
+        }
     }
 }

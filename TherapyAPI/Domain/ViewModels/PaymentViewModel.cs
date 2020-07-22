@@ -4,9 +4,8 @@ using Domain.Models;
 
 namespace Domain.ViewModels
 {
-    public class PaymentViewModel
+    public class PaymentViewModel : BaseViewModel
     {
-        public long ID { get; set; }
         public long Amount { get; set; }
         public string OrderID { get; set; }
         public PaymentType Type { get; set; }

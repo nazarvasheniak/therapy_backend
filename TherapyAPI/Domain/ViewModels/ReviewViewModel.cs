@@ -3,9 +3,8 @@ using Domain.Models;
 
 namespace Domain.ViewModels
 {
-    public class ReviewViewModel
+    public class ReviewViewModel : BaseViewModel
     {
-        public long ID { get; set; }
         public int Score { get; set; }
         public string Text { get; set; }
         public SessionViewModel Session { get; set; }

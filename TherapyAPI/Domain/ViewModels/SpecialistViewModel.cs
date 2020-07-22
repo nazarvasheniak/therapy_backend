@@ -4,9 +4,8 @@ using Domain.Models;
 
 namespace Domain.ViewModels
 {
-    public class SpecialistViewModel
+    public class SpecialistViewModel : BaseViewModel
     {
-        public long ID { get; set; }
         public UserViewModel User { get; set; }
         public FileViewModel Photo { get; set; }
         public double Price { get; set; }

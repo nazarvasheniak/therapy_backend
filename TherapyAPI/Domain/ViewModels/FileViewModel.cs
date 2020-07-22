@@ -4,9 +4,8 @@ using Domain.Models;
 
 namespace Domain.ViewModels
 {
-    public class FileViewModel
+    public class FileViewModel : BaseViewModel
     {
-        public long ID { get; set; }
         public string Name { get; set; }
         public FileType Type { get; set; }
         public string Url { get; set; }

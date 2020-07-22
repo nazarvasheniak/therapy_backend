@@ -4,9 +4,8 @@ using Domain.Models;
 
 namespace Domain.ViewModels
 {
-    public class SessionViewModel
+    public class SessionViewModel : BaseViewModel
     {
-        public long ID { get; set; }
         public ProblemViewModel Problem { get; set; }
         public SpecialistViewModel Specialist { get; set; }
         public SessionStatus Status { get; set; }

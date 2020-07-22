@@ -10,6 +10,7 @@ using Domain.ViewModels.Request;
 using Domain.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Utils;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -23,17 +24,20 @@ namespace TherapyAPI.Controllers
         private ISpecialistService SpecialistService { get; set; }
         private IReviewService ReviewService { get; set; }
         private ISessionService SessionService { get; set; }
+        private IProblemService ProblemService { get; set; }
 
         public SpecialistController([FromServices]
             IUserService userService,
             ISpecialistService specialistService,
             IReviewService reviewService,
-            ISessionService sessionService)
+            ISessionService sessionService,
+            IProblemService problemService)
         {
             UserService = userService;
             SpecialistService = specialistService;
             ReviewService = reviewService;
             SessionService = sessionService;
+            ProblemService = problemService;
         }
 
         private SpecialistViewModel GetFullSpecialist(Specialist specialist)
@@ -46,6 +50,34 @@ namespace TherapyAPI.Controllers
             var rating = ReviewService.GetSpecialistRating(specialist);
 
             return new SpecialistViewModel(specialist, rating, reviews);
+        }
+
+        public ClientCardViewModel GetClientCard(User user, Specialist specialist)
+        {
+            var result = new ClientCardViewModel
+            {
+                User = new UserViewModel(user),
+                ProblemsCount = ProblemService.GetUserProblemsCount(user),
+            };
+
+            var sessions = SessionService.GetAll()
+                    .Where(x => x.Problem.User == user && x.Specialist == specialist)
+                    .ToList();
+
+            var reviews = new List<ReviewViewModel>();
+
+            sessions.ForEach(session =>
+            {
+                var review = ReviewService.GetSessionReview(session);
+                reviews.Add(new ReviewViewModel(review));
+            });
+
+            result.Sessions = sessions.Select(x => new SessionViewModel(x)).ToList();
+            result.AverageScore = (reviews.Sum(x => x.Score) / reviews.Count);
+            result.Paid = sessions.Where(x => x.Status == SessionStatus.Success).Sum(x => x.Reward);
+            result.RefundsCount = sessions.Where(x => x.Status == SessionStatus.Refund).ToList().Count;
+
+            return result;
         }
 
         [HttpGet("info")]
@@ -178,6 +210,31 @@ namespace TherapyAPI.Controllers
             {
                 Data = sessions
             });
+        }
+
+        [HttpGet("clients")]
+        public IActionResult GetClients([FromQuery] GetList query)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var specialist = SpecialistService.GetSpecialistFromUser(user);
+            if (specialist == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Специалист не найден"
+                });
+
+            var clients = SessionService.GetSpecialistClients(specialist);
+            var response = PaginationHelper.PaginateEntityCollection(clients.Select(client => GetClientCard(client, specialist)), query);
+
+            return Ok(response);
         }
     }
 }

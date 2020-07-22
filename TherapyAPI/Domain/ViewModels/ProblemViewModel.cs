@@ -3,9 +3,8 @@ using Domain.Models;
 
 namespace Domain.ViewModels
 {
-    public class ProblemViewModel
+    public class ProblemViewModel : BaseViewModel
     {
-        public long ID { get; set; }
         public UserViewModel User { get; set; }
         public string ProblemText { get; set; }
 

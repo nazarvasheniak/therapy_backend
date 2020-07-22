@@ -5,9 +5,8 @@ using Domain.Models;
 
 namespace Domain.ViewModels
 {
-    public class ArticleCommentViewModel
+    public class ArticleCommentViewModel : BaseViewModel
     {
-        public long ID { get; set; }
         public UserViewModel Author { get; set; }
         public string Text { get; set; }
         public bool IsReply { get; set; }

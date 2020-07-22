@@ -4,9 +4,8 @@ using Domain.Models;
 
 namespace Domain.ViewModels
 {
-    public class UserViewModel
+    public class UserViewModel : BaseViewModel
     {
-        public long ID { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string PhoneNumber { get; set; }

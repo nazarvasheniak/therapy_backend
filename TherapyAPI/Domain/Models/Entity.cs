@@ -1,4 +1,6 @@
 ﻿using System;
+using Domain.ViewModels;
+
 namespace Domain.Models
 {
     public abstract class Entity<TId>
