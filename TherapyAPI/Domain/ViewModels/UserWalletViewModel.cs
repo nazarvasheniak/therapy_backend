@@ -3,9 +3,8 @@ using Domain.Models;
 
 namespace Domain.ViewModels
 {
-    public class UserWalletViewModel
+    public class UserWalletViewModel : BaseViewModel
     {
-        public long ID { get; set; }
         public UserViewModel User { get; set; }
         public double Balance { get; set; }
         public double LockedBalance { get; set; }

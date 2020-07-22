@@ -12,10 +12,5 @@ namespace Domain.Models
         public virtual string Email { get; set; }
         public virtual UserRole Role { get; set; }
         public virtual bool Deleted { get; set; }
-
-        public override BaseViewModel ToViewModel()
-        {
-            return new UserViewModel(this);
-        }
     }
 }
