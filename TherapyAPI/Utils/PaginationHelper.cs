@@ -10,9 +10,9 @@ namespace Utils
 {
     public static class PaginationHelper
     {
-        public static ListResponse<BaseViewModel> PaginateEntityCollection(IEnumerable<BaseViewModel> collection, GetList query)
+        public static ListResponse<object> PaginateEntityCollection(IEnumerable<object> collection, GetList query)
         {
-            return new ListResponse<BaseViewModel>
+            return new ListResponse<object>
             {
                 PageSize = query.PageSize,
                 CurrentPage = query.PageNumber,
