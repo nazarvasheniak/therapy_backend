@@ -271,5 +271,33 @@ namespace TherapyAPI.Controllers
                 Data = clientCard
             });
         }
+
+        [HttpGet("sessions")]
+        public IActionResult GetSessions([FromQuery] GetList query)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var specialist = SpecialistService.GetSpecialistFromUser(user);
+            if (specialist == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Специалист не найден"
+                });
+
+            var sessions = SessionService.GetSpecialistSessions(specialist)
+                .Select(x => new SessionViewModel(x))
+                .ToList();
+
+            var response = PaginationHelper.PaginateEntityCollection(sessions, query);
+
+            return Ok(response);
+        }
     }
 }
