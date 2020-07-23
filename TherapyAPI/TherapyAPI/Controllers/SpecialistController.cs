@@ -236,5 +236,40 @@ namespace TherapyAPI.Controllers
 
             return Ok(response);
         }
+
+        [HttpGet("clients/{id}")]
+        public IActionResult GetClient(long id)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var specialist = SpecialistService.GetSpecialistFromUser(user);
+            if (specialist == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Специалист не найден"
+                });
+
+            var client = UserService.Get(id);
+            if (client == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Клиент не найден"
+                });
+
+            var clientCard = GetClientCard(client, specialist);
+
+            return Ok(new DataResponse<ClientCardViewModel>
+            {
+                Data = clientCard
+            });
+        }
     }
 }
