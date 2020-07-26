@@ -52,7 +52,7 @@ namespace TherapyAPI.Controllers
             return new SpecialistViewModel(specialist, rating, reviews);
         }
 
-        public ClientCardViewModel GetClientCard(User user, Specialist specialist)
+        private ClientCardViewModel GetClientCard(User user, Specialist specialist)
         {
             var result = new ClientCardViewModel
             {
@@ -76,6 +76,24 @@ namespace TherapyAPI.Controllers
             result.AverageScore = (reviews.Sum(x => x.Score) / reviews.Count);
             result.Paid = sessions.Where(x => x.Status == SessionStatus.Success).Sum(x => x.Reward);
             result.RefundsCount = sessions.Where(x => x.Status == SessionStatus.Refund).ToList().Count;
+
+            return result;
+        }
+
+        private SpecialistSessionViewModel GetSpecialistSession(Session session, Review review = null)
+        {
+            var result = new SpecialistSessionViewModel
+            {
+                SessionID = session.ID,
+                SessionDate = session.Date,
+                SessionStatus = session.Status,
+                Client = new UserViewModel(session.Problem.User),
+                ProblemText = session.Problem.ProblemText,
+                Reward = session.Reward
+            };
+
+            if (review != null)
+                result.ReviewScore = review.Score;
 
             return result;
         }
@@ -261,11 +279,16 @@ namespace TherapyAPI.Controllers
                     Message = "Специалист не найден"
                 });
 
-            var sessions = SessionService.GetSpecialistSessions(specialist)
-                .Select(x => new SessionViewModel(x))
-                .ToList();
+            var sessions = SessionService.GetSpecialistSessions(specialist).ToList();
+            var result = new List<SpecialistSessionViewModel>();
 
-            var response = PaginationHelper.PaginateEntityCollection(sessions, query);
+            sessions.ForEach(session =>
+            {
+                var review = ReviewService.GetSessionReview(session);
+                result.Add(GetSpecialistSession(session, review));
+            });
+
+            var response = PaginationHelper.PaginateEntityCollection(result, query);
 
             return Ok(response);
         }
