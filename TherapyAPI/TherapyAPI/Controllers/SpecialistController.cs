@@ -182,36 +182,6 @@ namespace TherapyAPI.Controllers
             return Ok(new ResponseModel());
         }
 
-        [HttpGet("sessions/active")]
-        public IActionResult GetActiveSession()
-        {
-            var user = UserService.Get(long.Parse(User.Identity.Name));
-            if (user == null)
-                return NotFound(new ResponseModel
-                {
-                    Success = false,
-                    Message = "Пользователь не найден"
-                });
-
-            var specialist = SpecialistService.GetSpecialistFromUser(user);
-            if (specialist == null)
-                return NotFound(new ResponseModel
-                {
-                    Success = false,
-                    Message = "Специалист не найден"
-                });
-
-            var sessions = SessionService.GetSpecialistSessions(specialist)
-                .Where(x => x.Status == SessionStatus.Started)
-                .Select(x => new SessionViewModel(x))
-                .ToList();
-
-            return Ok(new DataResponse<List<SessionViewModel>>
-            {
-                Data = sessions
-            });
-        }
-
         [HttpGet("clients")]
         public IActionResult GetClients([FromQuery] GetList query)
         {
@@ -298,6 +268,64 @@ namespace TherapyAPI.Controllers
             var response = PaginationHelper.PaginateEntityCollection(sessions, query);
 
             return Ok(response);
+        }
+
+        [HttpGet("sessions/active")]
+        public IActionResult GetActiveSession()
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var specialist = SpecialistService.GetSpecialistFromUser(user);
+            if (specialist == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Специалист не найден"
+                });
+
+            var sessions = SessionService.GetSpecialistSessions(specialist)
+                .Where(x => x.Status == SessionStatus.Started)
+                .Select(x => new SessionViewModel(x))
+                .ToList();
+
+            return Ok(new DataResponse<List<SessionViewModel>>
+            {
+                Data = sessions
+            });
+        }
+
+        [HttpGet("reviews")]
+        public IActionResult GetReviews()
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var specialist = SpecialistService.GetSpecialistFromUser(user);
+            if (specialist == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Специалист не найден"
+                });
+
+            return Ok(new ReviewsResponse
+            {
+                PositiveReviews = ReviewService.GetSpecialistReviews(specialist, ReviewType.Positive),
+                NeutralReviews = ReviewService.GetSpecialistReviews(specialist, ReviewType.Neutral),
+                NegativeReviews = ReviewService.GetSpecialistReviews(specialist, ReviewType.Negative),
+                Rating = ReviewService.GetSpecialistRating(specialist)
+            });
         }
     }
 }
