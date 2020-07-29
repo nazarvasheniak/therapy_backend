@@ -14,6 +14,14 @@ namespace BusinessLogic.Services
         {
         }
 
+        public Session GetCurrentSession(User client, Specialist specialist)
+        {
+            return GetAll().FirstOrDefault(x =>
+                x.Problem.User == client &&
+                x.Specialist == specialist &&
+                x.Status == SessionStatus.Started);
+        }
+
         public List<Session> GetActiveSessions(User user)
         {
             return GetAll().Where(x => x.Problem.User == user && x.Status == SessionStatus.Started).ToList();

@@ -25,19 +25,28 @@ namespace TherapyAPI.Controllers
         private IReviewService ReviewService { get; set; }
         private ISessionService SessionService { get; set; }
         private IProblemService ProblemService { get; set; }
+        private IProblemImageService ProblemImageService { get; set; }
+        private IProblemResourceService ProblemResourceService { get; set; }
+        private IProblemResourceTaskService ProblemResourceTaskService { get; set; }
 
         public SpecialistController([FromServices]
             IUserService userService,
             ISpecialistService specialistService,
             IReviewService reviewService,
             ISessionService sessionService,
-            IProblemService problemService)
+            IProblemService problemService,
+            IProblemImageService problemImageService,
+            IProblemResourceService problemResourceService,
+            IProblemResourceTaskService problemResourceTaskService)
         {
             UserService = userService;
             SpecialistService = specialistService;
             ReviewService = reviewService;
             SessionService = sessionService;
             ProblemService = problemService;
+            ProblemImageService = problemImageService;
+            ProblemResourceService = problemResourceService;
+            ProblemResourceTaskService = problemResourceTaskService;
         }
 
         private SpecialistViewModel GetFullSpecialist(Specialist specialist)
@@ -225,8 +234,8 @@ namespace TherapyAPI.Controllers
             return Ok(response);
         }
 
-        [HttpGet("clients/{id}")]
-        public IActionResult GetClient(long id)
+        [HttpGet("clients/{clientID}")]
+        public IActionResult GetClient(long clientID)
         {
             var user = UserService.Get(long.Parse(User.Identity.Name));
             if (user == null)
@@ -244,7 +253,7 @@ namespace TherapyAPI.Controllers
                     Message = "Специалист не найден"
                 });
 
-            var client = UserService.Get(id);
+            var client = UserService.Get(clientID);
             if (client == null)
                 return NotFound(new ResponseModel
                 {
@@ -257,6 +266,430 @@ namespace TherapyAPI.Controllers
             return Ok(new DataResponse<ClientCardViewModel>
             {
                 Data = clientCard
+            });
+        }
+
+        [HttpGet("clients/{clientID}/problems/{problemID}/assets")]
+        public IActionResult GetClientAssets(long clientID, long problemID)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var specialist = SpecialistService.GetSpecialistFromUser(user);
+            if (specialist == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Специалист не найден"
+                });
+
+            var client = UserService.Get(clientID);
+            if (client == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Клиент не найден"
+                });
+
+            var problem = ProblemService.Get(problemID);
+            if (problem == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Проблема не найдена"
+                });
+
+            if (problem.User != client)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Ошибка доступа"
+                });
+
+            return Ok(new DataResponse<ProblemAssetsViewModel>
+            {
+                Data = new ProblemAssetsViewModel
+                {
+                    Problem = new ProblemViewModel(problem),
+                    Images = ProblemImageService.GetProblemImages(problem).Select(x => new ProblemImageViewModel(x)).ToList(),
+                    Resources = ProblemResourceService.GetProblemResources(problem).Select(x => new ProblemResourceViewModel(x)).ToList(),
+                    Sessions = SessionService.GetSpecialistSessions(specialist).Where(x => x.Problem.User == client).Select(x => GetSpecialistSession(x)).ToList()
+                }
+            });
+        }
+
+        [HttpPost("clients/{clientID}/problems/{problemID}/images")]
+        public IActionResult CreateClientProblemImage([FromBody] CreateUpdateProblemImageRequest request, long clientID, long problemID)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var specialist = SpecialistService.GetSpecialistFromUser(user);
+            if (specialist == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Специалист не найден"
+                });
+
+            var client = UserService.Get(clientID);
+            if (client == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Клиент не найден"
+                });
+
+            var problem = ProblemService.Get(problemID);
+            if (problem == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Проблема не найдена"
+                });
+
+            if (problem.User != client)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Ошибка доступа"
+                });
+
+            var session = SessionService.GetCurrentSession(client, specialist);
+            if (session == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Активная сессия не найдена"
+                });
+
+            if (session.Problem != problem)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Ошибка доступа"
+                });
+
+            var problemImage = new ProblemImage
+            {
+                Session = session,
+                Title = request.Title,
+                Emotion = request.Emotion,
+                Characteristic = request.Characteristic,
+                Location = request.Location,
+                LikeScore = request.LikeScore,
+                IsMine = request.IsMine,
+                IsIDo = request.IsIDo,
+                IsForever = request.IsForever,
+                IsHidden = false
+            };
+
+            if (request.ParentImageID != 0)
+            {
+                var parentImage = ProblemImageService.Get(request.ParentImageID);
+                if (parentImage == null)
+                    return NotFound(new ResponseModel
+                    {
+                        Success = false,
+                        Message = "Зависимость не найдена"
+                    });
+
+                problemImage.ParentImage = parentImage;
+            }
+
+            ProblemImageService.Create(problemImage);
+
+            var problemImages = ProblemImageService.GetProblemImages(problem)
+                .Select(x => new ProblemImageViewModel(x))
+                .ToList();
+
+            return Ok(new DataResponse<List<ProblemImageViewModel>>
+            {
+                Data = problemImages
+            });
+        }
+
+        [HttpPut("clients/{clientID}/problems/{problemID}/images/{imageID}")]
+        public IActionResult EditClientProblemImage([FromBody] CreateUpdateProblemImageRequest request, long clientID, long problemID, long imageID)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var specialist = SpecialistService.GetSpecialistFromUser(user);
+            if (specialist == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Специалист не найден"
+                });
+
+            var client = UserService.Get(clientID);
+            if (client == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Клиент не найден"
+                });
+
+            var problem = ProblemService.Get(problemID);
+            if (problem == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Проблема не найдена"
+                });
+
+            if (problem.User != client)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Ошибка доступа"
+                });
+
+            var session = SessionService.GetCurrentSession(client, specialist);
+            if (session == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Активная сессия не найдена"
+                });
+
+            if (session.Problem != problem)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Ошибка доступа"
+                });
+
+            var problemImage = ProblemImageService.Get(imageID);
+            if (problemImage == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Образ не найден"
+                });
+
+            if (request.Title != problemImage.Title)
+                problemImage.Title = request.Title;
+
+            if (request.Emotion != problemImage.Emotion)
+                problemImage.Emotion = request.Emotion;
+
+            if (request.Location != problemImage.Location)
+                problemImage.Location = request.Location;
+
+            if (request.Characteristic != problemImage.Characteristic)
+                problemImage.Characteristic = request.Characteristic;
+
+            if (request.IsMine != problemImage.IsMine)
+                problemImage.IsMine = request.IsMine;
+
+            if (request.IsIDo != problemImage.IsIDo)
+                problemImage.IsIDo = request.IsIDo;
+
+            if (request.IsForever != problemImage.IsForever)
+                problemImage.IsForever = request.IsForever;
+
+            if (request.LikeScore != problemImage.LikeScore)
+                problemImage.LikeScore = request.LikeScore;
+
+            long parentImageID = 0;
+            if (problemImage.ParentImage != null)
+                parentImageID = problemImage.ParentImage.ID;
+
+            if (request.ParentImageID != parentImageID)
+            {
+                var newParentImage = ProblemImageService.Get(request.ParentImageID);
+                if (newParentImage == null)
+                    return NotFound(new ResponseModel
+                    {
+                        Success = false,
+                        Message = "Зависимость не найдена"
+                    });
+
+                problemImage.ParentImage = newParentImage;
+            }
+
+            ProblemImageService.Update(problemImage);
+
+            var problemImages = ProblemImageService.GetProblemImages(problem)
+                .Select(x => new ProblemImageViewModel(x))
+                .ToList();
+
+            return Ok(new DataResponse<List<ProblemImageViewModel>>
+            {
+                Data = problemImages
+            });
+        }
+
+        [HttpPatch("clients/{clientID}/problems/{problemID}/images/{imageID}")]
+        public IActionResult ReloadClientProblemImage(long clientID, long problemID, long imageID)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var specialist = SpecialistService.GetSpecialistFromUser(user);
+            if (specialist == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Специалист не найден"
+                });
+
+            var client = UserService.Get(clientID);
+            if (client == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Клиент не найден"
+                });
+
+            var problem = ProblemService.Get(problemID);
+            if (problem == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Проблема не найдена"
+                });
+
+            if (problem.User != client)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Ошибка доступа"
+                });
+
+            var image = ProblemImageService.Get(imageID);
+            if (image == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Образ не найден"
+                });
+
+            var session = SessionService.GetCurrentSession(client, specialist);
+            if (session == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Активная сессия не найдена"
+                });
+
+            if (session.Problem != problem)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Ошибка доступа"
+                });
+
+            image.IsHidden = false;
+            ProblemImageService.Update(image);
+
+            var problemImages = ProblemImageService.GetProblemImages(problem)
+                .Select(x => new ProblemImageViewModel(x))
+                .ToList();
+
+            return Ok(new DataResponse<List<ProblemImageViewModel>>
+            {
+                Data = problemImages
+            });
+        }
+
+        [HttpDelete("clients/{clientID}/problems/{problemID}/images/{imageID}")]
+        public IActionResult HideCliendProblemImage(long clientID, long problemID, long imageID)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var specialist = SpecialistService.GetSpecialistFromUser(user);
+            if (specialist == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Специалист не найден"
+                });
+
+            var client = UserService.Get(clientID);
+            if (client == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Клиент не найден"
+                });
+
+            var problem = ProblemService.Get(problemID);
+            if (problem == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Проблема не найдена"
+                });
+
+            if (problem.User != client)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Ошибка доступа"
+                });
+
+            var image = ProblemImageService.Get(imageID);
+            if (image == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Образ не найден"
+                });
+
+            var session = SessionService.GetCurrentSession(client, specialist);
+            if (session == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Активная сессия не найдена"
+                });
+
+            if (session.Problem != problem)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Ошибка доступа"
+                });
+
+            image.IsHidden = true;
+            ProblemImageService.Update(image);
+
+            var problemImages = ProblemImageService.GetProblemImages(problem)
+                .Select(x => new ProblemImageViewModel(x))
+                .ToList();
+
+            return Ok(new DataResponse<List<ProblemImageViewModel>>
+            {
+                Data = problemImages
             });
         }
 
