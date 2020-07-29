@@ -65,6 +65,7 @@ namespace TherapyAPI.Controllers
         {
             var result = new ClientCardViewModel
             {
+                ID = user.ID,
                 User = new UserViewModel(user),
                 ProblemsCount = ProblemService.GetUserProblemsCount(user),
             };
@@ -105,6 +106,13 @@ namespace TherapyAPI.Controllers
                 result.ReviewScore = review.Score;
 
             return result;
+        }
+
+        private ProblemResourceViewModel GetFullProblemResource(ProblemResource resource)
+        {
+            var tasks = ProblemResourceTaskService.GetResourceTasks(resource);
+
+            return new ProblemResourceViewModel(resource, tasks);
         }
 
         [HttpGet("info")]
@@ -207,6 +215,97 @@ namespace TherapyAPI.Controllers
             SpecialistService.Update(specialist);
 
             return Ok(new ResponseModel());
+        }
+
+        [HttpGet("sessions")]
+        public IActionResult GetSessions([FromQuery] GetList query)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var specialist = SpecialistService.GetSpecialistFromUser(user);
+            if (specialist == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Специалист не найден"
+                });
+
+            var sessions = SessionService.GetSpecialistSessions(specialist).ToList();
+            var result = new List<SpecialistSessionViewModel>();
+
+            sessions.ForEach(session =>
+            {
+                var review = ReviewService.GetSessionReview(session);
+                result.Add(GetSpecialistSession(session, review));
+            });
+
+            var response = PaginationHelper.PaginateEntityCollection(result, query);
+
+            return Ok(response);
+        }
+
+        [HttpGet("sessions/active")]
+        public IActionResult GetActiveSession()
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var specialist = SpecialistService.GetSpecialistFromUser(user);
+            if (specialist == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Специалист не найден"
+                });
+
+            var sessions = SessionService.GetSpecialistSessions(specialist)
+                .Where(x => x.Status == SessionStatus.Started)
+                .Select(x => new SessionViewModel(x))
+                .ToList();
+
+            return Ok(new DataResponse<List<SessionViewModel>>
+            {
+                Data = sessions
+            });
+        }
+
+        [HttpGet("reviews")]
+        public IActionResult GetReviews()
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var specialist = SpecialistService.GetSpecialistFromUser(user);
+            if (specialist == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Специалист не найден"
+                });
+
+            return Ok(new ReviewsResponse
+            {
+                PositiveReviews = ReviewService.GetSpecialistReviews(specialist, ReviewType.Positive),
+                NeutralReviews = ReviewService.GetSpecialistReviews(specialist, ReviewType.Neutral),
+                NegativeReviews = ReviewService.GetSpecialistReviews(specialist, ReviewType.Negative),
+                Rating = ReviewService.GetSpecialistRating(specialist)
+            });
         }
 
         [HttpGet("clients")]
@@ -317,7 +416,7 @@ namespace TherapyAPI.Controllers
                 {
                     Problem = new ProblemViewModel(problem),
                     Images = ProblemImageService.GetProblemImages(problem).Select(x => new ProblemImageViewModel(x)).ToList(),
-                    Resources = ProblemResourceService.GetProblemResources(problem).Select(x => new ProblemResourceViewModel(x)).ToList(),
+                    Resources = ProblemResourceService.GetProblemResources(problem).Select(x => GetFullProblemResource(x)).ToList(),
                     Sessions = SessionService.GetSpecialistSessions(specialist).Where(x => x.Problem.User == client).Select(x => GetSpecialistSession(x)).ToList()
                 }
             });
@@ -693,8 +792,8 @@ namespace TherapyAPI.Controllers
             });
         }
 
-        [HttpGet("sessions")]
-        public IActionResult GetSessions([FromQuery] GetList query)
+        [HttpPost("clients/{clientID}/problems/{problemID}/resources")]
+        public IActionResult CreateClientProblemResource([FromBody] CreateUpdateProblemResourceRequest request, long clientID, long problemID)
         {
             var user = UserService.Get(long.Parse(User.Identity.Name));
             if (user == null)
@@ -712,52 +811,78 @@ namespace TherapyAPI.Controllers
                     Message = "Специалист не найден"
                 });
 
-            var sessions = SessionService.GetSpecialistSessions(specialist).ToList();
-            var result = new List<SpecialistSessionViewModel>();
+            var client = UserService.Get(clientID);
+            if (client == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Клиент не найден"
+                });
 
-            sessions.ForEach(session =>
+            var problem = ProblemService.Get(problemID);
+            if (problem == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Проблема не найдена"
+                });
+
+            if (problem.User != client)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Ошибка доступа"
+                });
+
+            var session = SessionService.GetCurrentSession(client, specialist);
+            if (session == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Активная сессия не найдена"
+                });
+
+            if (session.Problem != problem)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Ошибка доступа"
+                });
+
+            var resource = new ProblemResource
             {
-                var review = ReviewService.GetSessionReview(session);
-                result.Add(GetSpecialistSession(session, review));
-            });
+                Session = session,
+                Title = request.Title,
+                Emotion = request.Emotion,
+                Location = request.Location,
+                Characteristic = request.Characteristic,
+                Influence = request.Influence,
+                LikeScore = request.LikeScore
+            };
 
-            var response = PaginationHelper.PaginateEntityCollection(result, query);
+            ProblemResourceService.Create(resource);
 
-            return Ok(response);
-        }
+            if (request.Tasks.Length != 0)
+                foreach (var item in request.Tasks)
+                    ProblemResourceTaskService.Create(new ProblemResourceTask
+                    {
+                        Resource = resource,
+                        Title = item,
+                        IsDone = false
+                    });
 
-        [HttpGet("sessions/active")]
-        public IActionResult GetActiveSession()
-        {
-            var user = UserService.Get(long.Parse(User.Identity.Name));
-            if (user == null)
-                return NotFound(new ResponseModel
-                {
-                    Success = false,
-                    Message = "Пользователь не найден"
-                });
-
-            var specialist = SpecialistService.GetSpecialistFromUser(user);
-            if (specialist == null)
-                return NotFound(new ResponseModel
-                {
-                    Success = false,
-                    Message = "Специалист не найден"
-                });
-
-            var sessions = SessionService.GetSpecialistSessions(specialist)
-                .Where(x => x.Status == SessionStatus.Started)
-                .Select(x => new SessionViewModel(x))
+            var resources = ProblemResourceService.GetProblemResources(problem)
+                .Select(x => GetFullProblemResource(x))
                 .ToList();
 
-            return Ok(new DataResponse<List<SessionViewModel>>
+            return Ok(new DataResponse<List<ProblemResourceViewModel>>
             {
-                Data = sessions
+                Data = resources
             });
         }
 
-        [HttpGet("reviews")]
-        public IActionResult GetReviews()
+        [HttpPost("clients/{clientID}/problems/{problemID}/resources/{resourceID}/tasks")]
+        public IActionResult CreateClientProblemResourceTask([FromBody] CreateProblemResourceTask request, long clientID, long problemID, long resourceID)
         {
             var user = UserService.Get(long.Parse(User.Identity.Name));
             if (user == null)
@@ -775,12 +900,68 @@ namespace TherapyAPI.Controllers
                     Message = "Специалист не найден"
                 });
 
-            return Ok(new ReviewsResponse
+            var client = UserService.Get(clientID);
+            if (client == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Клиент не найден"
+                });
+
+            var problem = ProblemService.Get(problemID);
+            if (problem == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Проблема не найдена"
+                });
+
+            if (problem.User != client)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Ошибка доступа"
+                });
+
+            var session = SessionService.GetCurrentSession(client, specialist);
+            if (session == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Активная сессия не найдена"
+                });
+
+            if (session.Problem != problem)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Ошибка доступа"
+                });
+
+            var resource = ProblemResourceService.Get(resourceID);
+            if (resource == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Ресурс не найден"
+                });
+
+            var task = new ProblemResourceTask
             {
-                PositiveReviews = ReviewService.GetSpecialistReviews(specialist, ReviewType.Positive),
-                NeutralReviews = ReviewService.GetSpecialistReviews(specialist, ReviewType.Neutral),
-                NegativeReviews = ReviewService.GetSpecialistReviews(specialist, ReviewType.Negative),
-                Rating = ReviewService.GetSpecialistRating(specialist)
+                Resource = resource,
+                Title = request.Title,
+                IsDone = false
+            };
+
+            ProblemResourceTaskService.Create(task);
+
+            var tasks = ProblemResourceTaskService.GetResourceTasks(resource)
+                .Select(x => new ProblemResourceTaskViewModel(x))
+                .ToList();
+
+            return Ok(new DataResponse<List<ProblemResourceTaskViewModel>>
+            {
+                Data = tasks
             });
         }
     }

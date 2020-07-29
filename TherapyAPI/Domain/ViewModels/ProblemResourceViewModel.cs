@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Domain.Models;
 
 namespace Domain.ViewModels
@@ -12,8 +14,9 @@ namespace Domain.ViewModels
         public string Characteristic { get; set; }
         public string Influence { get; set; }
         public int LikeScore { get; set; }
+        public List<ProblemResourceTaskViewModel> Tasks { get; set; }
 
-        public ProblemResourceViewModel(ProblemResource resource)
+        public ProblemResourceViewModel(ProblemResource resource, IEnumerable<ProblemResourceTask> tasks)
         {
             if (resource != null)
             {
@@ -25,6 +28,7 @@ namespace Domain.ViewModels
                 Characteristic = resource.Characteristic;
                 Influence = resource.Influence;
                 LikeScore = resource.LikeScore;
+                Tasks = tasks.Select(x => new ProblemResourceTaskViewModel(x)).ToList();
             }
         }
     }
