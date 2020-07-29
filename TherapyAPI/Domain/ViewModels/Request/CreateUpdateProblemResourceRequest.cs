@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Domain.ViewModels.Request
@@ -23,6 +24,6 @@ namespace Domain.ViewModels.Request
         [Required]
         public int LikeScore { get; set; }
 
-        public string[] Tasks { get; set; }
+        public List<CreateUpdateProblemResourceTask> Tasks { get; set; }
     }
 }

@@ -10,6 +10,8 @@ namespace Domain.Models
         public virtual SessionStatus Status { get; set; }
         public virtual double Reward { get; set; }
         public virtual DateTime Date { get; set; }
+        public virtual bool IsSpecialistClose { get; set; }
+        public virtual bool IsClientClose { get; set; }
         public virtual bool Deleted { get; set; }
     }
 }

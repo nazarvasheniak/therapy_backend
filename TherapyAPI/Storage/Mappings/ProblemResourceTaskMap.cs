@@ -14,7 +14,7 @@ namespace Storage.Mappings
             References(e => e.Resource, "id_resource");
 
             Map(u => u.Title, "task_title");
-            Map(u => u.IsDone, "review_text");
+            Map(u => u.IsDone, "is_done");
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }
     }

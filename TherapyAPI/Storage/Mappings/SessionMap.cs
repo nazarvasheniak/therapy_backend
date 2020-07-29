@@ -18,6 +18,8 @@ namespace Storage.Mappings
             Map(u => u.Status, "session_status").CustomType<SessionStatus>();
             Map(u => u.Reward, "reward");
             Map(u => u.Date, "session_date");
+            Map(u => u.IsSpecialistClose, "is_specialist_close").Not.Nullable();
+            Map(u => u.IsClientClose, "is_client_close").Not.Nullable();
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }
     }

@@ -11,5 +11,6 @@ namespace BusinessLogic.Interfaces
         Session GetWaitingSession(Problem problem);
         List<Session> GetSpecialistSessions(Specialist specialist);
         List<User> GetSpecialistClients(Specialist specialist);
+        List<Session> GetUserSessions(User user);
     }
 }

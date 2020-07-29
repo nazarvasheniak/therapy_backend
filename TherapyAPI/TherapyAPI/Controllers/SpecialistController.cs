@@ -90,7 +90,18 @@ namespace TherapyAPI.Controllers
             return result;
         }
 
-        private SpecialistSessionViewModel GetSpecialistSession(Session session, Review review = null)
+        private SpecialistProfileActiveSessionViewModel GetSessionClientCard(Session session)
+        {
+            return new SpecialistProfileActiveSessionViewModel
+            {
+                Session = new SessionViewModel(session),
+                Client = GetClientCard(session.Problem.User, session.Specialist),
+                ImagesCount = ProblemImageService.GetProblemImages(session.Problem).Count,
+                ResourcesCount = ProblemResourceService.GetProblemResources(session.Problem).Count
+            };
+        }
+
+        private SpecialistSessionViewModel GetSpecialistSession(Session session)
         {
             var result = new SpecialistSessionViewModel
             {
@@ -99,9 +110,13 @@ namespace TherapyAPI.Controllers
                 SessionStatus = session.Status,
                 Client = new UserViewModel(session.Problem.User),
                 ProblemText = session.Problem.ProblemText,
-                Reward = session.Reward
+                Reward = session.Reward,
+                Specialist = GetFullSpecialist(session.Specialist),
+                IsSpecialistClose = session.IsSpecialistClose,
+                IsClientClose = session.IsClientClose
             };
 
+            var review = ReviewService.GetSessionReview(session);
             if (review != null)
                 result.ReviewScore = review.Score;
 
@@ -236,16 +251,11 @@ namespace TherapyAPI.Controllers
                     Message = "Специалист не найден"
                 });
 
-            var sessions = SessionService.GetSpecialistSessions(specialist).ToList();
-            var result = new List<SpecialistSessionViewModel>();
+            var sessions = SessionService.GetSpecialistSessions(specialist)
+                .Select(x => GetSpecialistSession(x))
+                .ToList();
 
-            sessions.ForEach(session =>
-            {
-                var review = ReviewService.GetSessionReview(session);
-                result.Add(GetSpecialistSession(session, review));
-            });
-
-            var response = PaginationHelper.PaginateEntityCollection(result, query);
+            var response = PaginationHelper.PaginateEntityCollection(sessions, query);
 
             return Ok(response);
         }
@@ -271,10 +281,10 @@ namespace TherapyAPI.Controllers
 
             var sessions = SessionService.GetSpecialistSessions(specialist)
                 .Where(x => x.Status == SessionStatus.Started)
-                .Select(x => new SessionViewModel(x))
+                .Select(x => GetSessionClientCard(x))
                 .ToList();
 
-            return Ok(new DataResponse<List<SessionViewModel>>
+            return Ok(new DataResponse<List<SpecialistProfileActiveSessionViewModel>>
             {
                 Data = sessions
             });
@@ -417,7 +427,7 @@ namespace TherapyAPI.Controllers
                     Problem = new ProblemViewModel(problem),
                     Images = ProblemImageService.GetProblemImages(problem).Select(x => new ProblemImageViewModel(x)).ToList(),
                     Resources = ProblemResourceService.GetProblemResources(problem).Select(x => GetFullProblemResource(x)).ToList(),
-                    Sessions = SessionService.GetSpecialistSessions(specialist).Where(x => x.Problem.User == client).Select(x => GetSpecialistSession(x)).ToList()
+                    Sessions = SessionService.GetUserSessions(client).Select(x => GetSpecialistSession(x)).ToList()
                 }
             });
         }
@@ -862,14 +872,7 @@ namespace TherapyAPI.Controllers
 
             ProblemResourceService.Create(resource);
 
-            if (request.Tasks.Length != 0)
-                foreach (var item in request.Tasks)
-                    ProblemResourceTaskService.Create(new ProblemResourceTask
-                    {
-                        Resource = resource,
-                        Title = item,
-                        IsDone = false
-                    });
+            request.Tasks.ForEach(task => ProblemResourceTaskService.CreateTask(task, resource));
 
             var resources = ProblemResourceService.GetProblemResources(problem)
                 .Select(x => GetFullProblemResource(x))
@@ -881,8 +884,8 @@ namespace TherapyAPI.Controllers
             });
         }
 
-        [HttpPost("clients/{clientID}/problems/{problemID}/resources/{resourceID}/tasks")]
-        public IActionResult CreateClientProblemResourceTask([FromBody] CreateProblemResourceTask request, long clientID, long problemID, long resourceID)
+        [HttpPut("clients/{clientID}/problems/{problemID}/resources/{resourceID}")]
+        public IActionResult EditClientProblemResource([FromBody] CreateUpdateProblemResourceRequest request, long clientID, long problemID, long resourceID)
         {
             var user = UserService.Get(long.Parse(User.Identity.Name));
             if (user == null)
@@ -946,23 +949,35 @@ namespace TherapyAPI.Controllers
                     Message = "Ресурс не найден"
                 });
 
-            var task = new ProblemResourceTask
-            {
-                Resource = resource,
-                Title = request.Title,
-                IsDone = false
-            };
+            if (request.Title != resource.Title)
+                resource.Title = request.Title;
 
-            ProblemResourceTaskService.Create(task);
+            if (request.Emotion != resource.Emotion)
+                resource.Emotion = request.Emotion;
 
-            var tasks = ProblemResourceTaskService.GetResourceTasks(resource)
-                .Select(x => new ProblemResourceTaskViewModel(x))
+            if (request.Location != resource.Location)
+                resource.Location = request.Location;
+
+            if (request.Characteristic != resource.Characteristic)
+                resource.Characteristic = request.Characteristic;
+
+            if (request.Influence != resource.Influence)
+                resource.Influence = request.Influence;
+
+            if (request.LikeScore != resource.LikeScore)
+                resource.LikeScore = request.LikeScore;
+
+            request.Tasks.ForEach(task => ProblemResourceTaskService.CreateUpdateTask(task, resource));
+
+            var resources = ProblemResourceService.GetProblemResources(problem)
+                .Select(x => GetFullProblemResource(x))
                 .ToList();
 
-            return Ok(new DataResponse<List<ProblemResourceTaskViewModel>>
+            return Ok(new DataResponse<List<ProblemResourceViewModel>>
             {
-                Data = tasks
+                Data = resources
             });
         }
+
     }
 }

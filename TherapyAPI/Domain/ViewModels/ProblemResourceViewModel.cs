@@ -16,6 +16,22 @@ namespace Domain.ViewModels
         public int LikeScore { get; set; }
         public List<ProblemResourceTaskViewModel> Tasks { get; set; }
 
+        public ProblemResourceViewModel(ProblemResource resource)
+        {
+            if (resource != null)
+            {
+                ID = resource.ID;
+                Session = new SessionViewModel(resource.Session);
+                Title = resource.Title;
+                Emotion = resource.Emotion;
+                Location = resource.Location;
+                Characteristic = resource.Characteristic;
+                Influence = resource.Influence;
+                LikeScore = resource.LikeScore;
+                Tasks = new List<ProblemResourceTaskViewModel>();
+            }
+        }
+
         public ProblemResourceViewModel(ProblemResource resource, IEnumerable<ProblemResourceTask> tasks)
         {
             if (resource != null)

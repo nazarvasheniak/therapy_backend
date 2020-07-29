@@ -11,6 +11,8 @@ namespace Domain.ViewModels
         public SessionStatus Status { get; set; }
         public double Reward { get; set; }
         public DateTime Date { get; set; }
+        public bool IsSpecialistClose { get; set; }
+        public bool IsClientClose { get; set; }
 
         public SessionViewModel(Session session)
         {
@@ -22,6 +24,8 @@ namespace Domain.ViewModels
                 Status = session.Status;
                 Reward = session.Reward;
                 Date = session.Date;
+                IsSpecialistClose = session.IsSpecialistClose;
+                IsClientClose = session.IsClientClose;
             }
         }
 
@@ -35,6 +39,8 @@ namespace Domain.ViewModels
                 Status = session.Status;
                 Reward = session.Reward;
                 Date = session.Date;
+                IsSpecialistClose = session.IsSpecialistClose;
+                IsClientClose = session.IsClientClose;
             }
         }
     }
