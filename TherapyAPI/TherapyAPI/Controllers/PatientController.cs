@@ -26,6 +26,9 @@ namespace TherapyAPI.Controllers
         private ISpecialistService SpecialistService { get; set; }
         private IReviewService ReviewService { get; set; }
         private IUserWalletService UserWalletService { get; set; }
+        private IProblemImageService ProblemImageService { get; set; }
+        private IProblemResourceService ProblemResourceService { get; set; }
+        private IProblemResourceTaskService ProblemResourceTaskService { get; set; }
 
         public PatientController([FromServices]
             IUserService userService,
@@ -33,7 +36,10 @@ namespace TherapyAPI.Controllers
             ISessionService sessionService,
             ISpecialistService specialistService,
             IReviewService reviewService,
-            IUserWalletService userWalletService)
+            IUserWalletService userWalletService,
+            IProblemImageService problemImageService,
+            IProblemResourceService problemResourceService,
+            IProblemResourceTaskService problemResourceTaskService)
         {
             UserService = userService;
             ProblemService = problemService;
@@ -41,6 +47,9 @@ namespace TherapyAPI.Controllers
             SpecialistService = specialistService;
             ReviewService = reviewService;
             UserWalletService = userWalletService;
+            ProblemImageService = problemImageService;
+            ProblemResourceService = problemResourceService;
+            ProblemResourceTaskService = problemResourceTaskService;
         }
 
         private SpecialistViewModel GetFullSpecialist(long id)
@@ -71,6 +80,13 @@ namespace TherapyAPI.Controllers
             var rating = ReviewService.GetSpecialistRating(specialist);
 
             return new SpecialistViewModel(specialist, rating, reviews);
+        }
+
+        private ProblemResourceViewModel GetFullProblemResource(ProblemResource resource)
+        {
+            var tasks = ProblemResourceTaskService.GetResourceTasks(resource);
+
+            return new ProblemResourceViewModel(resource, tasks);
         }
 
         [HttpGet("problems")]
@@ -362,6 +378,57 @@ namespace TherapyAPI.Controllers
             SessionService.Update(session);
 
             return Ok(new ResponseModel());
+        }
+
+        [HttpGet("problems/{problemID}/assets")]
+        public IActionResult GetProblemAssets(long problemID)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var problem = ProblemService.Get(problemID);
+            if (problem == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Проблема не найдена"
+                });
+
+            if (problem.User != user)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Доступ запрещен"
+                });
+
+            var images = ProblemImageService.GetProblemImages(problem)
+                .Select(x => new ProblemImageViewModel(x))
+                .ToList();
+
+            var resources = ProblemResourceService.GetProblemResources(problem)
+                .Select(x => GetFullProblemResource(x))
+                .ToList();
+
+            var sessions = SessionService.GetUserSessions(user)
+                .Where(x => x.Problem == problem)
+                .Select(x => new SessionViewModel(x))
+                .ToList();
+
+            return Ok(new DataResponse<ClientProblemAssetsViewModel>
+            {
+                Data = new ClientProblemAssetsViewModel
+                {
+                    Problem = new ProblemViewModel(problem),
+                    Images = images,
+                    Resources = resources,
+                    Sessions = sessions
+                }
+            });
         }
 
         [HttpPost("problems/{id}/sessions/{sessionID}/start")]
