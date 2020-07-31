@@ -92,6 +92,9 @@ namespace TherapyAPI.Controllers
         [HttpGet("problems")]
         public IActionResult GetProblems()
         {
+            if (User.Identity.Name == null)
+                return Ok();
+
             var user = UserService.Get(long.Parse(User.Identity.Name));
 
             if (user == null)
