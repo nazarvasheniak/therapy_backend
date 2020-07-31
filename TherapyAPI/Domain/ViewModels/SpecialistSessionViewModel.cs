@@ -15,5 +15,14 @@ namespace Domain.ViewModels
         public double Reward { get; set; }
         public bool IsSpecialistClose { get; set; }
         public bool IsClientClose { get; set; }
+
+        public int SessionImagesCount { get; set; }
+        public int TotalImagesCount { get; set; }
+
+        public int SessionResourcesCount { get; set; }
+        public int TotalResourcesCount { get; set; }
+
+        public bool IsAllImagesFromOneSpecialist { get; set; }
+        public bool IsAllResourcesFromOneSpecialist { get; set; }
     }
 }

@@ -82,7 +82,7 @@ namespace TherapyAPI.Controllers
                 reviews.Add(new ReviewViewModel(review));
             });
 
-            result.Sessions = sessions.Select(x => new SessionViewModel(x)).ToList();
+            result.Sessions = sessions.Select(x => GetSpecialistSession(x)).ToList();
             result.AverageScore = (reviews.Sum(x => x.Score) / reviews.Count);
             result.Paid = sessions.Where(x => x.Status == SessionStatus.Success).Sum(x => x.Reward);
             result.RefundsCount = sessions.Where(x => x.Status == SessionStatus.Refund).ToList().Count;
@@ -103,6 +103,9 @@ namespace TherapyAPI.Controllers
 
         private SpecialistSessionViewModel GetSpecialistSession(Session session)
         {
+            var images = ProblemImageService.GetProblemImages(session.Problem);
+            var resources = ProblemResourceService.GetProblemResources(session.Problem);
+
             var result = new SpecialistSessionViewModel
             {
                 SessionID = session.ID,
@@ -113,8 +116,24 @@ namespace TherapyAPI.Controllers
                 Reward = session.Reward,
                 Specialist = GetFullSpecialist(session.Specialist),
                 IsSpecialistClose = session.IsSpecialistClose,
-                IsClientClose = session.IsClientClose
+                IsClientClose = session.IsClientClose,
+                SessionImagesCount = images.Where(x => x.Session == session).Count(),
+                TotalImagesCount = images.Count,
+                SessionResourcesCount = resources.Where(x => x.Session == session).Count(),
+                TotalResourcesCount = resources.Count
             };
+
+            images.ForEach(image =>
+            {
+                if (image.Session.Specialist != session.Specialist)
+                    result.IsAllImagesFromOneSpecialist = false;
+            });
+
+            resources.ForEach(resource =>
+            {
+                if (resource.Session.Specialist != session.Specialist)
+                    result.IsAllResourcesFromOneSpecialist = false;
+            });
 
             var review = ReviewService.GetSessionReview(session);
             if (review != null)
