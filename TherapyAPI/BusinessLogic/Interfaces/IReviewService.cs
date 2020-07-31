@@ -9,7 +9,7 @@ namespace BusinessLogic.Interfaces
     public interface IReviewService : IBaseCrudService<Review>
     {
         double GetSpecialistRating(Specialist specialist);
-        List<ReviewViewModel> GetSpecialistReviews(Specialist specialist, ReviewType type);
+        List<ReviewViewModel> GetSpecialistReviews(Specialist specialist, string type);
         Review GetSessionReview(Session session);
     }
 }

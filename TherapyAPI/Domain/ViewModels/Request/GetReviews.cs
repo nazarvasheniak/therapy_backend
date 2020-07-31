@@ -5,6 +5,6 @@ namespace Domain.ViewModels.Request
 {
     public class GetReviews : GetList
     {
-        public ReviewType Type { get; set; }
+        public string Type { get; set; }
     }
 }

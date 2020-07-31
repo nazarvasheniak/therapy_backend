@@ -28,9 +28,11 @@ namespace BusinessLogic.Services
             return result;
         }
 
-        public List<ReviewViewModel> GetSpecialistReviews(Specialist specialist, ReviewType type)
+        public List<ReviewViewModel> GetSpecialistReviews(Specialist specialist, string type)
         {
-            switch (type)
+            var t = Enum.Parse<ReviewType>(type);
+                
+            switch (t)
             {
                 case ReviewType.Positive:
                     return GetAll()

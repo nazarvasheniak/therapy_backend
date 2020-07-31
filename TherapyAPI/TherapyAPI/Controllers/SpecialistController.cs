@@ -330,9 +330,9 @@ namespace TherapyAPI.Controllers
 
             return Ok(new ReviewsResponse
             {
-                PositiveReviews = ReviewService.GetSpecialistReviews(specialist, ReviewType.Positive),
-                NeutralReviews = ReviewService.GetSpecialistReviews(specialist, ReviewType.Neutral),
-                NegativeReviews = ReviewService.GetSpecialistReviews(specialist, ReviewType.Negative),
+                PositiveReviews = ReviewService.GetSpecialistReviews(specialist, "Positive"),
+                NeutralReviews = ReviewService.GetSpecialistReviews(specialist, "Neutral"),
+                NegativeReviews = ReviewService.GetSpecialistReviews(specialist, "Negative"),
                 Rating = ReviewService.GetSpecialistRating(specialist)
             });
         }
