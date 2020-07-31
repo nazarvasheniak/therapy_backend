@@ -529,6 +529,7 @@ namespace TherapyAPI.Controllers
             wallet.Balance -= session.Reward;
             UserWalletService.Update(wallet);
 
+            session.IsClientClose = true;
             session.Status = SessionStatus.Success;
             SessionService.Update(session);
 
