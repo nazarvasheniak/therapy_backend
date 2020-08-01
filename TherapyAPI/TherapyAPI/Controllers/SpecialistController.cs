@@ -213,7 +213,7 @@ namespace TherapyAPI.Controllers
                 PositiveReviewsCount = reviews.Where(x => x.Score > 3).Count(),
                 NeutralReviewsCount = reviews.Where(x => x.Score == 3).Count(),
                 NegativeReviewsCount = reviews.Where(x => x.Score < 3).Count(),
-                PhotoUrl = specialist.Photo.Url,
+                PhotoUrl = specialist.Photo != null ? specialist.Photo.Url : null,
                 Price = specialist.Price,
                 TotalEarnings = sessions.Where(x => x.Status == SessionStatus.Success).Sum(x => x.Reward),
                 TotalSessions = sessions.Count,

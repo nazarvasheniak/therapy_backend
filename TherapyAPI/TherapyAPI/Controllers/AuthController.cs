@@ -34,6 +34,38 @@ namespace TherapyAPI.Controllers
             UserWalletService = userWalletService;
         }
 
+        [HttpPost("test/sign-in")]
+        public IActionResult TestSignIn([FromBody] SignInRequest request)
+        {
+            var user = UserService.FindByPhoneNumber(request.PhoneNumber);
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Номер телефона не зарегистрирован"
+                });
+
+            if (user.PhoneNumber != "+78888888888" && user.PhoneNumber != "+79999999999")
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Ошибка доступа"
+                });
+
+            if (UserSessionService.GetUserActiveSession(user) != null)
+                UserSessionService.CloseUserActiveSession(user);
+
+            UserSessionService.CreateSession(user);
+
+            var token = UserSessionService.AuthorizeUser(user);
+
+            return Ok(new SignInConfirmResponse
+            {
+                Token = token,
+                Role = user.Role
+            });
+        }
+
         // api/auth/sign-up
         [HttpPost("sign-up")]
         public IActionResult SignUp([FromBody] SignUpRequest request)
