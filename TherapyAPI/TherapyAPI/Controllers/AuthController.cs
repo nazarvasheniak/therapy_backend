@@ -142,7 +142,8 @@ namespace TherapyAPI.Controllers
 
             return Ok(new SignInConfirmResponse
             {
-                Token = token
+                Token = token,
+                Role = user.Role
             });
         }
 

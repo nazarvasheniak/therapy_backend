@@ -1,4 +1,6 @@
 ﻿using System;
+using Domain.Enums;
+
 namespace Domain.ViewModels.Response
 {
     public class SignInResponse : ResponseModel
