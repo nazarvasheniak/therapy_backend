@@ -53,11 +53,63 @@ namespace TherapyAPI
                 });
 
             // Register the Swagger generator, defining 1 or more Swagger documents
-            services.AddSwaggerGen(c =>
+            //services.AddSwaggerGen(c =>
+            //{
+            //    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Therapy API", Version = "v1" });
+            //    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme { In = ParameterLocation.Header, Description = "Please enter JWT with Bearer into field", Name = "Authorization", Type = SecuritySchemeType.Http });
+            //    c.AddSecurityRequirement(new OpenApiSecurityRequirement());
+            //});
+
+            services.AddSwaggerGen(options =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Therapy API", Version = "v1" });
-                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme { In = ParameterLocation.Header, Description = "Please enter JWT with Bearer into field", Name = "Authorization", Type = SecuritySchemeType.Http });
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement());
+                var apiinfo = new OpenApiInfo
+                {
+                    Title = "Therapy API",
+                    Version = "v1",
+                    Description = "API Корневая терапия",
+                    Contact = new OpenApiContact
+                    {
+                        Name = "thetalentbot",
+                        Url = new Uri("https://thetalentbot.com/developers/contact")
+                    },
+                    License = new OpenApiLicense()
+                    {
+                        Name = "Commercial",
+                        Url = new Uri("https://thetalentbot.com/developers/license")
+                    }
+                };
+
+                OpenApiSecurityScheme securityDefinition = new OpenApiSecurityScheme()
+                {
+                    Name = "Bearer",
+                    BearerFormat = "JWT",
+                    Scheme = "bearer",
+                    Description = "Specify the authorization token.",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.Http,
+                };
+
+                OpenApiSecurityRequirement securityRequirements = new OpenApiSecurityRequirement()
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            In = ParameterLocation.Header,
+                            Description = "Please enter JWT with Bearer into field",
+                            Name = "Authorization",
+                            Type = SecuritySchemeType.Http
+                        },
+                        new string[]
+                        {
+
+                        }
+                    },
+                };
+
+                options.SwaggerDoc("v1", apiinfo);
+                options.AddSecurityDefinition("jwt_auth", securityDefinition);
+                // Make sure swagger UI requires a Bearer token to be specified
+                options.AddSecurityRequirement(securityRequirements);
             });
         }
 
