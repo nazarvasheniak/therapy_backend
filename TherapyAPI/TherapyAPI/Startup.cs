@@ -34,7 +34,7 @@ namespace TherapyAPI
             services.AddBuisnessServices();
             services.AddNHibernate("Server=localhost;Port=3306;Uid=root;Pwd=admin;Database=therapy_db;SslMode=required;");
             services.AddCors();
-            
+
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
@@ -60,56 +60,45 @@ namespace TherapyAPI
             //    c.AddSecurityRequirement(new OpenApiSecurityRequirement());
             //});
 
-            services.AddSwaggerGen(options =>
+            services.AddSwaggerGen(c =>
             {
-                var apiinfo = new OpenApiInfo
+                // configure SwaggerDoc and others
+
+                // add JWT Authentication
+                var securityScheme = new OpenApiSecurityScheme
                 {
-                    Title = "Therapy API",
-                    Version = "v1",
-                    Description = "API Корневая терапия",
-                    Contact = new OpenApiContact
+                    Name = "JWT Authentication",
+                    Description = "Enter JWT Bearer token **_only_**",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer", // must be lower case
+                    BearerFormat = "JWT",
+                    Reference = new OpenApiReference
                     {
-                        Name = "thetalentbot",
-                        Url = new Uri("https://thetalentbot.com/developers/contact")
-                    },
-                    License = new OpenApiLicense()
-                    {
-                        Name = "Commercial",
-                        Url = new Uri("https://thetalentbot.com/developers/license")
+                        Id = JwtBearerDefaults.AuthenticationScheme,
+                        Type = ReferenceType.SecurityScheme
                     }
                 };
 
-                OpenApiSecurityScheme securityDefinition = new OpenApiSecurityScheme()
+                c.AddSecurityDefinition(securityScheme.Reference.Id, securityScheme);
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
-                    Name = "Bearer",
-                    BearerFormat = "JWT",
-                    Scheme = "bearer",
-                    Description = "Specify the authorization token.",
-                    In = ParameterLocation.Header,
+                    {securityScheme, new string[] { }}
+                });
+
+                // add Basic Authentication
+                var basicSecurityScheme = new OpenApiSecurityScheme
+                {
                     Type = SecuritySchemeType.Http,
+                    Scheme = "basic",
+                    Reference = new OpenApiReference { Id = "BasicAuth", Type = ReferenceType.SecurityScheme }
                 };
 
-                OpenApiSecurityRequirement securityRequirements = new OpenApiSecurityRequirement()
+                c.AddSecurityDefinition(basicSecurityScheme.Reference.Id, basicSecurityScheme);
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
-                    {
-                        new OpenApiSecurityScheme
-                        {
-                            In = ParameterLocation.Header,
-                            Description = "Please enter JWT with Bearer into field",
-                            Name = "Authorization",
-                            Type = SecuritySchemeType.Http
-                        },
-                        new string[]
-                        {
-
-                        }
-                    },
-                };
-
-                options.SwaggerDoc("v1", apiinfo);
-                options.AddSecurityDefinition("jwt_auth", securityDefinition);
-                // Make sure swagger UI requires a Bearer token to be specified
-                options.AddSecurityRequirement(securityRequirements);
+                    {basicSecurityScheme, new string[] { }}
+                });
             });
         }
 
@@ -123,7 +112,7 @@ namespace TherapyAPI
 
             app.UseCors(builder =>
                 builder.WithOrigins("*").AllowAnyHeader().AllowAnyMethod());
-            
+
             // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();
 
