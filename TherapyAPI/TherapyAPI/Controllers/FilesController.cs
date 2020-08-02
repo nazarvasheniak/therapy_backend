@@ -24,6 +24,24 @@ namespace TherapyAPI.Controllers
             FileService = fileService;
         }
 
+        [HttpGet("{id}")]
+        public IActionResult GetFile(long id)
+        {
+            var file = FileService.Get(id);
+
+            if (file == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Файл не найден"
+                });
+
+            return Ok(new DataResponse<FileViewModel>
+            {
+                Data = new FileViewModel(file)
+            });
+        }
+
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> UploadFile([FromBody] UploadFileRequest request)
@@ -42,17 +60,11 @@ namespace TherapyAPI.Controllers
             });
         }
 
-        [HttpGet("{id}")]
-        public IActionResult GetFile(long id)
+        [HttpPost("form")]
+        [Authorize]
+        public async Task<IActionResult> UploadFileForm([FromForm] UploadFileFormRequest request)
         {
-            var file = FileService.Get(id);
-
-            if (file == null)
-                return NotFound(new ResponseModel
-                {
-                    Success = false,
-                    Message = "Файл не найден"
-                });
+            var file = await FileService.SaveFileForm(request.File);
 
             return Ok(new DataResponse<FileViewModel>
             {

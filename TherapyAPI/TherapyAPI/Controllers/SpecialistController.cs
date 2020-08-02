@@ -21,6 +21,7 @@ namespace TherapyAPI.Controllers
     public class SpecialistController : Controller
     {
         private IUserService UserService { get; set; }
+        private IFileService FileService { get; set; }
         private ISpecialistService SpecialistService { get; set; }
         private IReviewService ReviewService { get; set; }
         private ISessionService SessionService { get; set; }
@@ -31,6 +32,7 @@ namespace TherapyAPI.Controllers
 
         public SpecialistController([FromServices]
             IUserService userService,
+            IFileService fileService,
             ISpecialistService specialistService,
             IReviewService reviewService,
             ISessionService sessionService,
@@ -40,6 +42,7 @@ namespace TherapyAPI.Controllers
             IProblemResourceTaskService problemResourceTaskService)
         {
             UserService = userService;
+            FileService = fileService;
             SpecialistService = specialistService;
             ReviewService = reviewService;
             SessionService = sessionService;
@@ -334,6 +337,37 @@ namespace TherapyAPI.Controllers
                 NeutralReviews = ReviewService.GetSpecialistReviews(specialist, "Neutral"),
                 NegativeReviews = ReviewService.GetSpecialistReviews(specialist, "Negative"),
                 Rating = ReviewService.GetSpecialistRating(specialist)
+            });
+        }
+
+        [HttpPut("avatar")]
+        public IActionResult UploadAvatarImage([FromForm] UploadFileFormRequest request)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var specialist = SpecialistService.GetSpecialistFromUser(user);
+            if (specialist == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Специалист не найден"
+                });
+
+            var file = FileService.SaveFileForm(request.File);
+            file.Wait();
+
+            specialist.Photo = file.Result;
+            SpecialistService.Update(specialist);
+
+            return Ok(new DataResponse<FileViewModel>
+            {
+                Data = new FileViewModel(specialist.Photo)
             });
         }
 
@@ -997,6 +1031,5 @@ namespace TherapyAPI.Controllers
                 Data = resources
             });
         }
-
     }
 }

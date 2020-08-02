@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using BusinessLogic.Interfaces;
 using Domain.Enums;
 using Domain.Models;
+using Microsoft.AspNetCore.Http;
 using Storage.Interfaces;
 
 namespace BusinessLogic.Services
@@ -37,7 +38,7 @@ namespace BusinessLogic.Services
                 Name = filename,
                 Type = GetFileType(base64string),
                 LocalPath = path,
-                Url = $"http://185.43.5.164/files/{now.Month.ToString()}/{filename}"
+                Url = $"http://185.43.5.164/files/{now.Month}/{filename}"
             };
 
             Create(file);
@@ -45,38 +46,79 @@ namespace BusinessLogic.Services
             return file;
         }
 
+        public async Task<File> SaveFileForm(IFormFile formFile)
+        {
+            var now = DateTime.Now;
+            //string dir = System.IO.Path.Combine("/var", "www", "html", "files", now.Month.ToString());
+            string dir = System.IO.Path.Combine("/Users", "user", "documents", "testfiles", now.Month.ToString());
+
+            if (!System.IO.Directory.Exists(dir))
+                System.IO.Directory.CreateDirectory(dir);
+
+            string filename = $"{(now.Hour.ToString() + now.Minute.ToString() + now.Second.ToString() + now.Millisecond.ToString()).Replace(" ", "").Replace(".", "").Replace(":", "")}.{GetFileTypeStr(formFile)}";
+            string path = System.IO.Path.Combine(dir, filename);
+
+            using var stream = System.IO.File.Create(path);
+            await formFile.CopyToAsync(stream);
+            stream.Close();
+
+            var dbRecord = new File
+            {
+                Name = formFile.FileName,
+                Type = GetFileType(formFile),
+                LocalPath = path,
+                Url = $"http://84.201.153.205/files/{now.Month}/{filename}"
+            };
+
+            Create(dbRecord);
+
+            return dbRecord;
+        }
+
         public FileType GetFileType(string base64string)
         {
             var strings = base64string.Split(",");
 
-            switch (strings[0])
-            {//check image's extension
-                case "data:image/jpeg;base64":
-                    return FileType.JPEG;
+            return (strings[0]) switch
+            {
+                "data:image/jpeg;base64" => FileType.JPEG,
+                "data:image/png;base64" => FileType.PNG,
+                _ => FileType.JPEG,
+            };
+        }
 
-                case "data:image/png;base64":
-                    return FileType.PNG;
-
-                default:
-                    return FileType.JPEG;
-            }
+        public FileType GetFileType(IFormFile formFile)
+        {
+            return formFile.ContentType switch
+            {
+                "image/png" => FileType.PNG,
+                "image/jpeg" => FileType.JPEG,
+                "image/jpg" => FileType.JPEG,
+                _ => FileType.PNG,
+            };
         }
 
         public string GetFileTypeStr(string base64string)
         {
             var strings = base64string.Split(",");
 
-            switch (strings[0])
-            {//check image's extension
-                case "data:image/jpeg;base64":
-                    return "jpg";
+            return (strings[0]) switch
+            {
+                "data:image/jpeg;base64" => "jpg",
+                "data:image/png;base64" => "png",
+                _ => "jpg",
+            };
+        }
 
-                case "data:image/png;base64":
-                    return "png";
-
-                default:
-                    return "jpg";
-            }
+        public string GetFileTypeStr(IFormFile formFile)
+        {
+            return formFile.ContentType switch
+            {
+                "image/png" => "png",
+                "image/jpeg" => "jpg",
+                "image/jpg" => "jpg",
+                _ => "png",
+            };
         }
     }
 }
