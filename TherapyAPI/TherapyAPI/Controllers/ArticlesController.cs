@@ -176,6 +176,24 @@ namespace TherapyAPI.Controllers
             });
         }
 
+        [HttpGet("{id}")]
+        public IActionResult GetArticle(long id)
+        {
+            var article = GetFullArticle(id);
+
+            if (article == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Статья не найдена"
+                });
+
+            return Ok(new DataResponse<ArticleViewModel>
+            {
+                Data = article
+            });
+        }
+
         [HttpGet("my")]
         [Authorize]
         public IActionResult GetMyArticles([FromQuery] GetList query)
@@ -222,24 +240,6 @@ namespace TherapyAPI.Controllers
                 PageSize = query.PageSize,
                 CurrentPage = query.PageNumber,
                 TotalPages = (int)Math.Ceiling(all.Count / (double)query.PageSize)
-            });
-        }
-
-        [HttpGet("{id}")]
-        public IActionResult GetArticle(long id)
-        {
-            var article = GetFullArticle(id);
-
-            if (article == null)
-                return NotFound(new ResponseModel
-                {
-                    Success = false,
-                    Message = "Статья не найдена"
-                });
-
-            return Ok(new DataResponse<ArticleViewModel>
-            {
-                Data = article
             });
         }
 
@@ -318,7 +318,6 @@ namespace TherapyAPI.Controllers
         public IActionResult UpdateArticle([FromBody] CreateUpdateArticleRequest request, long id)
         {
             var user = UserService.Get(long.Parse(User.Identity.Name));
-
             if (user == null)
                 return NotFound(new ResponseModel
                 {
@@ -334,7 +333,6 @@ namespace TherapyAPI.Controllers
                 });
 
             var specialist = SpecialistService.GetSpecialistFromUser(user);
-
             if (specialist == null)
                 return BadRequest(new ResponseModel
                 {
@@ -343,7 +341,6 @@ namespace TherapyAPI.Controllers
                 });
 
             var article = ArticleService.Get(id);
-
             if (article == null)
                 return NotFound(new ResponseModel
                 {
@@ -379,6 +376,53 @@ namespace TherapyAPI.Controllers
             {
                 Data = new ArticleViewModel(article)
             });
+        }
+
+        [HttpDelete("{articleID}")]
+        [Authorize]
+        public IActionResult DeleteArticle(long articleID)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            if (user.Role == UserRole.Client)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Ошибка доступа"
+                });
+
+            var specialist = SpecialistService.GetSpecialistFromUser(user);
+            if (specialist == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Ошибка доступа"
+                });
+
+            var article = ArticleService.Get(articleID);
+            if (article == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Статья не найдена"
+                });
+
+            if (article.Author != specialist)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Ошибка доступа"
+                });
+
+            ArticleService.Delete(article);
+
+            return Ok(new ResponseModel());
         }
 
         [HttpPost("{id}/like")]
