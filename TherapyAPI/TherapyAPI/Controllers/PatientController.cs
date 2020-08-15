@@ -96,7 +96,6 @@ namespace TherapyAPI.Controllers
                 return Ok();
 
             var user = UserService.Get(long.Parse(User.Identity.Name));
-
             if (user == null)
                 return NotFound(new ResponseModel
                 {

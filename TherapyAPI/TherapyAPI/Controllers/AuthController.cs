@@ -7,6 +7,7 @@ using Domain.Enums;
 using Domain.Models;
 using Domain.ViewModels.Request;
 using Domain.ViewModels.Response;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Utils.SmsC;
 
@@ -66,7 +67,7 @@ namespace TherapyAPI.Controllers
             });
         }
 
-        // api/auth/sign-up
+        ///api/auth/sign-up
         [HttpPost("sign-up")]
         public IActionResult SignUp([FromBody] SignUpRequest request)
         {
@@ -118,7 +119,7 @@ namespace TherapyAPI.Controllers
             });
         }
 
-        // api/auth/sign-in
+        ///api/auth/sign-in
         [HttpPost("sign-in")]
         public IActionResult SignIn([FromBody] SignInRequest request)
         {
@@ -143,7 +144,7 @@ namespace TherapyAPI.Controllers
             });
         }
 
-        // api/auth/sign-in/confirm
+        ///api/auth/sign-in/confirm
         [HttpPost("sign-in/confirm")]
         public IActionResult SignInConfirm([FromBody] SignInConfirmRequest request)
         {
@@ -179,6 +180,7 @@ namespace TherapyAPI.Controllers
             });
         }
 
+        ///api/auth/sign-in/confirm/resend
         [HttpPost("sign-in/confirm/resend")]
         public IActionResult ResendConfirmCode([FromBody] ResendConfirmCodeRequest request)
         {
@@ -209,11 +211,22 @@ namespace TherapyAPI.Controllers
             });
         }
 
-        [HttpGet("getnumberinfo")]
-        public async Task<IActionResult> GetNumberInfo([FromQuery] string phone)
+        ///api/auth/logout
+        [HttpDelete("logout")]
+        [Authorize]
+        public IActionResult UserLogout()
         {
-            var info = await SmscHelper.GetNumberInfo(phone);
-            return Ok(info);
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            UserSessionService.CloseUserActiveSession(user);
+
+            return Ok(new ResponseModel());
         }
     }
 }
