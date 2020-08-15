@@ -10,6 +10,7 @@ namespace Domain.ViewModels
         public FileViewModel Photo { get; set; }
         public double Price { get; set; }
         public double Rating { get; set; }
+        public string Description { get; set; }
         public List<ReviewViewModel> Reviews { get; set; }
 
         public SpecialistViewModel(Specialist specialist)
@@ -20,6 +21,7 @@ namespace Domain.ViewModels
                 User = new UserViewModel(specialist.User);
                 Photo = new FileViewModel(specialist.Photo);
                 Price = specialist.Price;
+                Description = specialist.Description;
                 Rating = 0;
                 Reviews = new List<ReviewViewModel>();
             }
@@ -33,6 +35,7 @@ namespace Domain.ViewModels
                 User = new UserViewModel(specialist.User);
                 Photo = new FileViewModel(specialist.Photo);
                 Price = specialist.Price;
+                Description = specialist.Description;
                 Rating = rating;
                 Reviews = reviews;
             }

@@ -16,6 +16,7 @@ namespace Storage.Mappings
             References(e => e.Photo, "id_photo");
 
             Map(u => u.Price, "price");
+            Map(u => u.Description, "description").CustomSqlType("text").Length(1994967295);
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }
     }
