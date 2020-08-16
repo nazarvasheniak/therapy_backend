@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BusinessLogic.Config;
+using System;
 namespace Utils.SberbankAcquiring.Models.Request
 {
     public class RegisterDORequest
@@ -15,22 +16,22 @@ namespace Utils.SberbankAcquiring.Models.Request
         {
             OrderNumber = orderNumber;
             Amount = amount;
-            ReturnUrl = $"http://localhost:5000/api/payments/success";
-            FailUrl = $"http://localhost:5000/api/payments/fail";
+            ReturnUrl = $"{AppSettings.ApiUrl}/payments/success";
+            FailUrl = $"{AppSettings.ApiUrl}/payments/fail";
         }
 
         public RegisterDORequest(string orderNumber, long amount, long sessionID)
         {
             OrderNumber = orderNumber;
             Amount = amount;
-            ReturnUrl = $"http://localhost:5000/api/payments/success?sessionId={sessionID}";
-            FailUrl = $"http://localhost:5000/api/payments/fail?sessionId={sessionID}";
+            ReturnUrl = $"{AppSettings.ApiUrl}/payments/success?sessionId={sessionID}";
+            FailUrl = $"{AppSettings.ApiUrl}/payments/fail?sessionId={sessionID}";
         }
 
         public void SetSessionID(long sessionID)
         {
-            ReturnUrl = $"http://localhost:5000/api/payments/success?sessionId={sessionID}";
-            FailUrl = $"http://localhost:5000/api/payments/fail?sessionId={sessionID}";
+            ReturnUrl = $"{AppSettings.ApiUrl}/payments/success?sessionId={sessionID}";
+            FailUrl = $"{AppSettings.ApiUrl}/payments/fail?sessionId={sessionID}";
         }
     }
 }

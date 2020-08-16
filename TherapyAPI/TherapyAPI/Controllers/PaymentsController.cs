@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BusinessLogic.Config;
 using BusinessLogic.Interfaces;
 using Domain.Enums;
 using Domain.Models;
@@ -35,6 +36,11 @@ namespace TherapyAPI.Controllers
             PaymentService = paymentService;
             UserWalletService = userWalletService;
             SessionService = sessionService;
+        }
+
+        private RedirectResult RedirectResult(string redirectPath)
+        {
+            return Redirect($"{AppSettings.ClientAppUrl}/{redirectPath}");
         }
 
         [HttpPost]
@@ -131,7 +137,7 @@ namespace TherapyAPI.Controllers
                 SessionService.Update(session);
             }
 
-            return Redirect("http://localhost:4200/#/profile?deposit=success");
+            return RedirectResult("profile?deposit=success");
                 
         }
 

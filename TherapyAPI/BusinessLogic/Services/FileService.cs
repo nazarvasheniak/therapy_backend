@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Threading.Tasks;
+using BusinessLogic.Config;
 using BusinessLogic.Interfaces;
 using Domain.Enums;
 using Domain.Models;
@@ -19,7 +20,8 @@ namespace BusinessLogic.Services
         {
             var now = DateTime.Now;
             //string dir = System.IO.Path.Combine("/var", "www", "html", "files", now.Month.ToString());
-            string dir = System.IO.Path.Combine("/Users", "user", "documents", "testfiles", now.Month.ToString());
+            //string dir = System.IO.Path.Combine("/Users", "user", "documents", "testfiles", now.Month.ToString());
+            string dir = System.IO.Path.Combine("C:", "OpenServer", "domains", "files", now.Month.ToString());
 
             if (!System.IO.Directory.Exists(dir))
                 System.IO.Directory.CreateDirectory(dir);
@@ -38,7 +40,7 @@ namespace BusinessLogic.Services
                 Name = filename,
                 Type = GetFileType(base64string),
                 LocalPath = path,
-                Url = $"http://185.43.5.164/files/{now.Month}/{filename}"
+                Url = $"{AppSettings.StaticWebUrl}/files/{now.Month}/{filename}"
             };
 
             Create(file);
@@ -50,7 +52,8 @@ namespace BusinessLogic.Services
         {
             var now = DateTime.Now;
             //string dir = System.IO.Path.Combine("/var", "www", "html", "files", now.Month.ToString());
-            string dir = System.IO.Path.Combine("/Users", "user", "documents", "testfiles", now.Month.ToString());
+            //string dir = System.IO.Path.Combine("/Users", "user", "documents", "testfiles", now.Month.ToString());
+            string dir = System.IO.Path.Combine("C:", "OpenServer", "domains", "files", now.Month.ToString());
 
             if (!System.IO.Directory.Exists(dir))
                 System.IO.Directory.CreateDirectory(dir);
@@ -67,7 +70,7 @@ namespace BusinessLogic.Services
                 Name = formFile.FileName,
                 Type = GetFileType(formFile),
                 LocalPath = path,
-                Url = $"http://84.201.153.205/files/{now.Month}/{filename}"
+                Url = $"{AppSettings.StaticWebUrl}/files/{now.Month}/{filename}"
             };
 
             Create(dbRecord);
