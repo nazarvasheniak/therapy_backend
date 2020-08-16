@@ -40,7 +40,7 @@ namespace BusinessLogic.Services
                 Name = filename,
                 Type = GetFileType(base64string),
                 LocalPath = path,
-                Url = $"{AppSettings.StaticWebUrl}/files/{now.Month}/{filename}"
+                Url = $"{AppSettings.StaticWebUrl}/{now.Month}/{filename}"
             };
 
             Create(file);
@@ -70,7 +70,7 @@ namespace BusinessLogic.Services
                 Name = formFile.FileName,
                 Type = GetFileType(formFile),
                 LocalPath = path,
-                Url = $"{AppSettings.StaticWebUrl}/files/{now.Month}/{filename}"
+                Url = $"{AppSettings.StaticWebUrl}/{now.Month}/{filename}"
             };
 
             Create(dbRecord);
