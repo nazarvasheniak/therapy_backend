@@ -89,6 +89,16 @@ namespace TherapyAPI.Controllers
             return new ProblemResourceViewModel(resource, tasks);
         }
 
+        private SessionViewModel GetFullSession(Session session)
+        {
+            var review = ReviewService.GetSessionReview(session);
+
+            if (review == null)
+                return new SessionViewModel(session);
+
+            return new SessionViewModel(session, review.Score);
+        }
+
         [HttpGet("problems")]
         public IActionResult GetProblems()
         {
@@ -196,7 +206,7 @@ namespace TherapyAPI.Controllers
             var sessions = SessionService.GetAll()
                 .Where(x => x.Problem == problem)
                 .OrderBy(x => x.Date)
-                .Select(x => new SessionViewModel(x))
+                .Select(x => GetFullSession(x))
                 .ToList();
 
             return Ok(new DataResponse<List<SessionViewModel>>

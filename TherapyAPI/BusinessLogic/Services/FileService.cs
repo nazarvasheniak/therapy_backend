@@ -19,9 +19,9 @@ namespace BusinessLogic.Services
         public async Task<File> SaveFile(string base64string)
         {
             var now = DateTime.Now;
-            //string dir = System.IO.Path.Combine("/var", "www", "html", "files", now.Month.ToString());
+            string dir = System.IO.Path.Combine("/var", "www", "html", "files", now.Month.ToString());
             //string dir = System.IO.Path.Combine("/Users", "user", "documents", "testfiles", now.Month.ToString());
-            string dir = System.IO.Path.Combine("C:", "OpenServer", "domains", "files", now.Month.ToString());
+            //string dir = System.IO.Path.Combine("C:", "OpenServer", "domains", "files", now.Month.ToString());
 
             if (!System.IO.Directory.Exists(dir))
                 System.IO.Directory.CreateDirectory(dir);
@@ -51,9 +51,9 @@ namespace BusinessLogic.Services
         public async Task<File> SaveFileForm(IFormFile formFile)
         {
             var now = DateTime.Now;
-            //string dir = System.IO.Path.Combine("/var", "www", "html", "files", now.Month.ToString());
+            string dir = System.IO.Path.Combine("/var", "www", "html", "files", now.Month.ToString());
             //string dir = System.IO.Path.Combine("/Users", "user", "documents", "testfiles", now.Month.ToString());
-            string dir = System.IO.Path.Combine("C:", "OpenServer", "domains", "files", now.Month.ToString());
+            //string dir = System.IO.Path.Combine("C:", "OpenServer", "domains", "files", now.Month.ToString());
 
             if (!System.IO.Directory.Exists(dir))
                 System.IO.Directory.CreateDirectory(dir);
