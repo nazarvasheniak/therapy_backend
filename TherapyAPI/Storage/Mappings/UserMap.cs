@@ -17,6 +17,7 @@ namespace Storage.Mappings
             Map(u => u.PhoneNumber, "phone_num");
             Map(u => u.Email, "email");
             Map(u => u.Role, "role").CustomType<UserRole>();
+            Map(u => u.RegisteredAt, "registered_at");
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }
     }

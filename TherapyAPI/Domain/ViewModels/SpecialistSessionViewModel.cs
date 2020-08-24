@@ -10,6 +10,7 @@ namespace Domain.ViewModels
         public DateTime SessionDate { get; set; }
         public SessionStatus SessionStatus { get; set; }
         public UserViewModel Client { get; set; }
+        public ProblemViewModel Problem { get; set; }
         public string ProblemText { get; set; }
         public int ReviewScore { get; set; }
         public double Reward { get; set; }

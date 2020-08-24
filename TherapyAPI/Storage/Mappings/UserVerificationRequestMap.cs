@@ -19,6 +19,8 @@ namespace Storage.Mappings
             References(e => e.Selfie, "id_selfie");
 
             Map(u => u.Status, "request_status").CustomType<UserVerificationRequestStatus>();
+            Map(u => u.CreatedAt, "created_at");
+            Map(u => u.UpdatedAt, "updated_at");
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }
     }

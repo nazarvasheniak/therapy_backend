@@ -23,6 +23,7 @@ namespace TherapyAPI.Controllers
         private IUserService UserService { get; set; }
         private IFileService FileService { get; set; }
         private ISpecialistService SpecialistService { get; set; }
+        private IUserWalletService WalletService { get; set; }
         private IReviewService ReviewService { get; set; }
         private ISessionService SessionService { get; set; }
         private IProblemService ProblemService { get; set; }
@@ -34,6 +35,7 @@ namespace TherapyAPI.Controllers
             IUserService userService,
             IFileService fileService,
             ISpecialistService specialistService,
+            IUserWalletService walletService,
             IReviewService reviewService,
             ISessionService sessionService,
             IProblemService problemService,
@@ -44,6 +46,7 @@ namespace TherapyAPI.Controllers
             UserService = userService;
             FileService = fileService;
             SpecialistService = specialistService;
+            WalletService = walletService;
             ReviewService = reviewService;
             SessionService = sessionService;
             ProblemService = problemService;
@@ -115,6 +118,7 @@ namespace TherapyAPI.Controllers
                 SessionDate = session.Date,
                 SessionStatus = session.Status,
                 Client = new UserViewModel(session.Problem.User),
+                Problem = new ProblemViewModel(session.Problem),
                 ProblemText = session.Problem.ProblemText,
                 Reward = session.Reward,
                 Specialist = GetFullSpecialist(session.Specialist),
@@ -302,7 +306,7 @@ namespace TherapyAPI.Controllers
                 });
 
             var sessions = SessionService.GetSpecialistSessions(specialist)
-                .Where(x => x.Status == SessionStatus.Started)
+                .Where(x => !x.IsSpecialistClose)
                 .Select(x => GetSessionClientCard(x))
                 .ToList();
 
@@ -1030,6 +1034,76 @@ namespace TherapyAPI.Controllers
             {
                 Data = resources
             });
+        }
+    
+        [HttpPost("clients/{clientID}/problems/{problemID}/sessions/{sessionID}/close")]
+        public IActionResult CloseClientSession(long clientID, long problemID, long sessionID)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var specialist = SpecialistService.GetSpecialistFromUser(user);
+            if (specialist == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Специалист не найден"
+                });
+
+            var client = UserService.Get(clientID);
+            if (client == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Клиент не найден"
+                });
+
+            var problem = ProblemService.Get(problemID);
+            if (problem == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Проблема не найдена"
+                });
+
+            if (problem.User != client)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Ошибка доступа"
+                });
+
+            var session = SessionService.Get(sessionID);
+            if (session == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Сессия не найдена"
+                });
+
+            var wallet = WalletService.GetUserWallet(user);
+            if (wallet == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Кошелек не найден"
+                });
+
+            session.IsSpecialistClose = true;
+            SessionService.Update(session);
+
+            if (session.IsClientClose)
+            {
+                wallet.Balance += session.Reward;
+                WalletService.Update(wallet);
+            }
+
+            return Ok(new ResponseModel());
         }
     }
 }

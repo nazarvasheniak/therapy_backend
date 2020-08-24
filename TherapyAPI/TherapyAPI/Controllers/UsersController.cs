@@ -19,16 +19,20 @@ namespace TherapyAPI.Controllers
     public class UsersController : Controller
     {
         private IUserService UserService { get; set; }
+        private IUserVerificationService UserVerificationService { get; set; }
         private IUserVerificationRequestService UserVerificationRequestService { get; set; }
         private IFileService FileService { get; set; }
 
         public UsersController([FromServices]
             IUserService userService,
+            IUserVerificationService verificationService,
             IUserVerificationRequestService verificationRequestService,
             IFileService fileService)
         {
             UserService = userService;
+            UserVerificationService = verificationService;
             UserVerificationRequestService = verificationRequestService;
+            FileService = fileService;
         }
 
         [HttpGet("info")]
@@ -45,6 +49,54 @@ namespace TherapyAPI.Controllers
             return Ok(new DataResponse<UserViewModel>
             {
                 Data = new UserViewModel(user)
+            });
+        }
+
+        [HttpGet("verification")]
+        public IActionResult GetUserVerification()
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var verification = UserVerificationService.GetUserVerification(user);
+            if (verification == null)
+                return Ok(new GetVerificationResponse
+                {
+                    IsVerified = false
+                });
+
+            return Ok(new GetVerificationResponse
+            {
+                IsVerified = true
+            });
+        }
+
+        [HttpGet("verification/request")]
+        public IActionResult GetUserVerificationRequest()
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var verificationRequest = UserVerificationRequestService.GetVerificationRequest(user);
+            if (verificationRequest == null)
+                return Ok(new DataResponse<UserVerificationRequestViewModel>
+                {
+                    Data = null
+                });
+
+            return Ok(new DataResponse<UserVerificationRequestViewModel>
+            {
+                Data = new UserVerificationRequestViewModel(verificationRequest)
             });
         }
 

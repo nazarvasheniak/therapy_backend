@@ -7,5 +7,6 @@ namespace BusinessLogic.Interfaces
 {
     public interface IUserVerificationService : IBaseCrudService<UserVerification>
     {
+        UserVerification GetUserVerification(User user);
     }
 }

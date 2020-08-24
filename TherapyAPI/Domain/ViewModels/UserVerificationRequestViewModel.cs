@@ -12,6 +12,8 @@ namespace Domain.ViewModels
         public FileViewModel Document { get; set; }
         public FileViewModel Selfie { get; set; }
         public UserVerificationRequestStatus Status { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
 
         public UserVerificationRequestViewModel(UserVerificationRequest verificationRequest)
         {
@@ -21,6 +23,8 @@ namespace Domain.ViewModels
                 Document = new FileViewModel(verificationRequest.Document);
                 Selfie = new FileViewModel(verificationRequest.Selfie);
                 Status = verificationRequest.Status;
+                CreatedAt = verificationRequest.CreatedAt;
+                UpdatedAt = verificationRequest.UpdatedAt;
             }
         }
     }

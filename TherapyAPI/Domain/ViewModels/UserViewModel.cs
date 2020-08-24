@@ -11,7 +11,7 @@ namespace Domain.ViewModels
         public string PhoneNumber { get; set; }
         public string Email { get; set; }
         public UserRole Role { get; set; }
-
+        public DateTime RegisteredAt { get; set; }
 
         public UserViewModel(User user)
         {
@@ -23,6 +23,7 @@ namespace Domain.ViewModels
                 PhoneNumber = user.PhoneNumber;
                 Email = user.Email;
                 Role = user.Role;
+                RegisteredAt = user.RegisteredAt;
             }
         }
     }

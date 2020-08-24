@@ -11,6 +11,7 @@ namespace Domain.ViewModels
         public UserViewModel User { get; set; }
         public FileViewModel Document { get; set; }
         public FileViewModel Selfie { get; set; }
+        public UserVerificationRequestViewModel VerificationRequest { get; set; }
 
         public UserVerificationViewModel(UserVerification verification)
         {
@@ -19,6 +20,7 @@ namespace Domain.ViewModels
                 User = new UserViewModel(verification.User);
                 Document = new FileViewModel(verification.Document);
                 Selfie = new FileViewModel(verification.Selfie);
+                VerificationRequest = new UserVerificationRequestViewModel(verification.VerificationRequest);
             }
         }
     }

@@ -9,9 +9,6 @@
     <Compile Remove="Enums\EmptyEnumeration.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="ViewModels\Response\" />
-  </ItemGroup>
-  <ItemGroup>
     <None Remove="ViewModels\Request\SignInRequest.json" />
   </ItemGroup>
   <ItemGroup>

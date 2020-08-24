@@ -3,6 +3,7 @@ using Domain.Models;
 using Storage.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace BusinessLogic.Services
@@ -11,6 +12,11 @@ namespace BusinessLogic.Services
     {
         public UserVerificationService(IRepository<UserVerification> repository) : base(repository)
         {
+        }
+
+        public UserVerification GetUserVerification(User user)
+        {
+            return GetAll().FirstOrDefault(x => x.User == user);
         }
     }
 }

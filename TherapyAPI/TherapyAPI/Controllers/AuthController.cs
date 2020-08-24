@@ -93,7 +93,8 @@ namespace TherapyAPI.Controllers
                 LastName = request.LastName,
                 PhoneNumber = request.PhoneNumber,
                 Email = request.Email,
-                Role = UserRole.Client
+                Role = UserRole.Client,
+                RegisteredAt = DateTime.UtcNow
             };
 
             UserService.Create(user);

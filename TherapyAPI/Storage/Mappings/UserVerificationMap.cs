@@ -16,6 +16,7 @@ namespace Storage.Mappings
             References(e => e.User, "id_user");
             References(e => e.Document, "id_document");
             References(e => e.Selfie, "id_selfie");
+            References(e => e.VerificationRequest, "id_request").Not.Nullable();
 
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }
