@@ -9,10 +9,6 @@
     <Compile Remove="Enums\EmptyEnumeration.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Enums\" />
-    <Folder Include="Models\" />
-    <Folder Include="ViewModels\" />
-    <Folder Include="ViewModels\Request\" />
     <Folder Include="ViewModels\Response\" />
   </ItemGroup>
   <ItemGroup>
