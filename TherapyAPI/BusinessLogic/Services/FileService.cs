@@ -19,7 +19,7 @@ namespace BusinessLogic.Services
         public async Task<File> SaveFile(string base64string)
         {
             var now = DateTime.Now;
-            string dir = System.IO.Path.Combine("/var", "www", "html", "files", now.Month.ToString());
+            string dir = System.IO.Path.Combine("/var", "www", "www-root", "data", "www", "static.kornevaya.ru", "uploads", now.Month.ToString());
             //string dir = System.IO.Path.Combine("/Users", "user", "documents", "testfiles", now.Month.ToString());
             //string dir = System.IO.Path.Combine("C:", "OpenServer", "domains", "files", now.Month.ToString());
 
@@ -40,7 +40,7 @@ namespace BusinessLogic.Services
                 Name = filename,
                 Type = GetFileType(base64string),
                 LocalPath = path,
-                Url = $"{AppSettings.StaticWebUrl}/{now.Month}/{filename}"
+                Url = $"{AppSettings.StaticWebUrl}/uploads/{now.Month}/{filename}"
             };
 
             Create(file);
@@ -51,7 +51,7 @@ namespace BusinessLogic.Services
         public async Task<File> SaveFileForm(IFormFile formFile)
         {
             var now = DateTime.Now;
-            string dir = System.IO.Path.Combine("/var", "www", "html", "files", now.Month.ToString());
+            string dir = System.IO.Path.Combine("/var", "www", "www-root", "data", "www", "static.kornevaya.ru", "uploads", now.Month.ToString());
             //string dir = System.IO.Path.Combine("/Users", "user", "documents", "testfiles", now.Month.ToString());
             //string dir = System.IO.Path.Combine("C:", "OpenServer", "domains", "files", now.Month.ToString());
 
@@ -70,7 +70,7 @@ namespace BusinessLogic.Services
                 Name = formFile.FileName,
                 Type = GetFileType(formFile),
                 LocalPath = path,
-                Url = $"{AppSettings.StaticWebUrl}/{now.Month}/{filename}"
+                Url = $"{AppSettings.StaticWebUrl}/uploads/{now.Month}/{filename}"
             };
 
             Create(dbRecord);

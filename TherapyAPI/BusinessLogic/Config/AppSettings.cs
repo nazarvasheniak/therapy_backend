@@ -6,8 +6,8 @@ namespace BusinessLogic.Config
 {
     public static class AppSettings
     {
-        public static readonly string ApiUrl = "http://api.kornevaya.ru/api";
-        public static readonly string ClientAppUrl = "http://kornevaya.ru";
-        public static readonly string StaticWebUrl = "http://kornevaya.ru/files";
+        public static readonly string ApiUrl = "https://api.kornevaya.ru/api";
+        public static readonly string ClientAppUrl = "https://kornevaya.ru";
+        public static readonly string StaticWebUrl = "https://static.kornevaya.ru";
     }
 }

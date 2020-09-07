@@ -6,6 +6,7 @@ using BusinessLogic;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -32,8 +33,8 @@ namespace TherapyAPI
         {
             services.AddControllers();
             services.AddBuisnessServices();
-            services.AddNHibernate("Server=localhost;Port=3306;Uid=root;Pwd=admin;Database=therapy_db;SslMode=required;");
-            //services.AddNHibernate("Server=localhost;Port=3306;Uid=therapy_user;Pwd=LtxfGyCvNnh3;Database=therapy_db;SslMode=required;");
+            //services.AddNHibernate("Server=localhost;Port=3306;Uid=root;Pwd=admin;Database=therapy_db;SslMode=required;");
+            services.AddNHibernate("Server=localhost;Port=3306;Uid=therapy_user;Pwd=LtxfGyCvNnh3;Database=therapy_db;SslMode=required;");
             services.AddCors();
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -111,6 +112,11 @@ namespace TherapyAPI
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            });
+
             app.UseCors(builder =>
                 builder.WithOrigins("*").AllowAnyHeader().AllowAnyMethod());
 
@@ -129,7 +135,7 @@ namespace TherapyAPI
 
             app.UseAuthentication();
             app.UseAuthorization();
-            //app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
 
             app.UseEndpoints(endpoints =>
             {

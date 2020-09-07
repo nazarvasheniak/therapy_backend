@@ -21,7 +21,8 @@ namespace TherapyAPI
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                    webBuilder.UseUrls("http://*:5000");
+                    webBuilder.UseKestrel();
+                    webBuilder.UseUrls("http://localhost:5000");
                 });
     }
 }
