@@ -431,7 +431,7 @@ namespace TherapyAPI.Controllers
 
             var sessions = SessionService.GetUserSessions(user)
                 .Where(x => x.Problem == problem)
-                .Select(x => new SessionViewModel(x))
+                .Select(x => GetFullSession(x))
                 .ToList();
 
             return Ok(new DataResponse<ClientProblemAssetsViewModel>
