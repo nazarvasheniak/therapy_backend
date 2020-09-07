@@ -24,6 +24,8 @@ namespace TherapyAPI.Controllers
         private IArticleCommentService ArticleCommentService { get; set; }
         private IUserService UserService { get; set; }
         private ISpecialistService SpecialistService { get; set; }
+
+        private IReviewService ReviewService { get; set; }
         private IFileService FileService { get; set; }
 
         public ArticlesController([FromServices]
@@ -32,6 +34,7 @@ namespace TherapyAPI.Controllers
             IArticleCommentService articleCommentService,
             IUserService userService,
             ISpecialistService specialistService,
+            IReviewService reviewService,
             IFileService fileService)
         {
             ArticleService = articleService;
@@ -39,6 +42,7 @@ namespace TherapyAPI.Controllers
             ArticleCommentService = articleCommentService;
             UserService = userService;
             SpecialistService = specialistService;
+            ReviewService = reviewService;
             FileService = fileService;
         }
 
@@ -77,7 +81,10 @@ namespace TherapyAPI.Controllers
                 }
             }
 
-            return new ArticleViewModel(article, likes, comments, isLiked);
+            var result = new ArticleViewModel(article, likes, comments, isLiked);
+            result.Author.Rating = ReviewService.GetSpecialistRating(article.Author);
+
+            return result;
         }
 
         private ArticleViewModel GetFullArticle(Article article)
@@ -110,7 +117,10 @@ namespace TherapyAPI.Controllers
                 }
             }
 
-            return new ArticleViewModel(article, likes, comments, isLiked);
+            var result = new ArticleViewModel(article, likes, comments, isLiked);
+            result.Author.Rating = ReviewService.GetSpecialistRating(article.Author);
+
+            return result;
         }
 
         private List<ArticleViewModel> GetFullArticles(GetList query)
@@ -154,7 +164,10 @@ namespace TherapyAPI.Controllers
                     }
                 }
 
-                result.Add(new ArticleViewModel(article, likes, comments, isLiked));
+                var articleViewModel = new ArticleViewModel(article, likes, comments, isLiked);
+                articleViewModel.Author.Rating = ReviewService.GetSpecialistRating(article.Author);
+
+                result.Add(articleViewModel);
             });
 
             return result;

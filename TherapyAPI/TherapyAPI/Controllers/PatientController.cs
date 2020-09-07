@@ -92,11 +92,14 @@ namespace TherapyAPI.Controllers
         private SessionViewModel GetFullSession(Session session)
         {
             var review = ReviewService.GetSessionReview(session);
+            var result = new SessionViewModel(session);
 
-            if (review == null)
-                return new SessionViewModel(session);
+            if (review != null)
+                result.ReviewScore = review.Score;
 
-            return new SessionViewModel(session, review.Score);
+            result.Specialist.Rating = ReviewService.GetSpecialistRating(session.Specialist);
+
+            return result;
         }
 
         [HttpGet("problems")]
