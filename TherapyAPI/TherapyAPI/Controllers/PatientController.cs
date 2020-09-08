@@ -71,7 +71,6 @@ namespace TherapyAPI.Controllers
 
         private SpecialistViewModel GetFullSpecialist(Specialist specialist)
         {
-            var test = ReviewService.GetAll();
             var reviews = ReviewService.GetAll()
                 .Where(x => x.Session.Specialist == specialist)
                 .Select(x => new ReviewViewModel(x))
@@ -97,7 +96,7 @@ namespace TherapyAPI.Controllers
             if (review != null)
                 result.ReviewScore = review.Score;
 
-            result.Specialist.Rating = ReviewService.GetSpecialistRating(session.Specialist);
+            result.Specialist = GetFullSpecialist(session.Specialist);
 
             return result;
         }
