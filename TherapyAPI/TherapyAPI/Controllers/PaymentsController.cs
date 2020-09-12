@@ -75,7 +75,7 @@ namespace TherapyAPI.Controllers
 
             PaymentService.Create(payment);
 
-            var paymentRequest = new RegisterDORequest($"user#{user.ID}deposit#{payment.ID}", (payment.Amount * 100));
+            var paymentRequest = new RegisterDORequest($"user#{user.ID}deposit#{payment.ID}_{DateTime.UtcNow.Millisecond}", (payment.Amount * 100));
 
             if (request.SessionID != 0)
                 paymentRequest.SetSessionID(request.SessionID);
