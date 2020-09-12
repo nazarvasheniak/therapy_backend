@@ -36,7 +36,7 @@ namespace TherapyAPI.BackgroundServices
             var sessions = GetActiveSessions();
             sessions.ForEach(session =>
             {
-                var endTime = session.SpecialistCloseDate - DateTime.UtcNow;
+                var endTime = session.SpecialistCloseDate.AddDays(1) - DateTime.UtcNow;
                 Task.Delay(endTime).ContinueWith(o => CloseSession(session));
             });
         }
@@ -44,7 +44,7 @@ namespace TherapyAPI.BackgroundServices
         private List<Session> GetActiveSessions()
         {
             return SessionService.GetAll()
-                .Where(x => x.IsSpecialistClose && !x.IsClientClose && (x.SpecialistCloseDate > DateTime.UtcNow))
+                .Where(x => x.IsSpecialistClose && !x.IsClientClose && (x.SpecialistCloseDate < DateTime.UtcNow))
                 .ToList();
         }
 
