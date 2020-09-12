@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BusinessLogic;
+using BusinessLogic.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -16,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Storage;
+using TherapyAPI.BackgroundServices;
 
 namespace TherapyAPI
 {
@@ -102,10 +104,12 @@ namespace TherapyAPI
                     {basicSecurityScheme, new string[] { }}
                 });
             });
+
+            services.AddScoped<SessionsTimerService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider serviceProvider)
         {
             if (env.IsDevelopment())
             {
@@ -141,6 +145,11 @@ namespace TherapyAPI
             {
                 endpoints.MapControllers();
             });
+
+            var sessionsService = serviceProvider.GetService<SessionsTimerService>();
+            sessionsService.SetServices(
+                serviceProvider.GetService<ISessionService>(),
+                serviceProvider.GetService<IUserWalletService>());
         }
     }
 }

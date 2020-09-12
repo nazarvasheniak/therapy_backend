@@ -51,5 +51,10 @@ namespace BusinessLogic.Services
         {
             return GetAll().Where(x => x.Problem.User == user).ToList();
         }
+
+        public List<Session> GetProblemSessions(Problem problem)
+        {
+            return GetAll().Where(x => x.Problem == problem).ToList();
+        }
     }
 }

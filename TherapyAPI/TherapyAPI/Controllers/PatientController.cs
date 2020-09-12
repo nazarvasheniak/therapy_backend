@@ -260,7 +260,7 @@ namespace TherapyAPI.Controllers
 
             return Ok(new DataResponse<SessionViewModel>
             {
-                Data = new SessionViewModel(session)
+                Data = GetFullSession(session)
             });
         }
 
@@ -300,7 +300,7 @@ namespace TherapyAPI.Controllers
 
             return Ok(new DataResponse<SessionViewModel>
             {
-                Data = new SessionViewModel(session)
+                Data = GetFullSession(session)
             });
         }
 
@@ -540,10 +540,22 @@ namespace TherapyAPI.Controllers
                     Message = "Кошелек не найден"
                 });
 
+            var specialistWallet = UserWalletService.GetUserWallet(session.Specialist.User);
+            if (specialistWallet == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Кошелек не найден"
+                });
+
             wallet.Balance -= session.Reward;
             UserWalletService.Update(wallet);
 
+            specialistWallet.Balance += session.Reward;
+            UserWalletService.Update(specialistWallet);
+
             session.IsClientClose = true;
+            session.ClientCloseDate = DateTime.UtcNow;
             session.Status = SessionStatus.Success;
             SessionService.Update(session);
 

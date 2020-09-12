@@ -12,5 +12,6 @@ namespace BusinessLogic.Interfaces
         List<Session> GetSpecialistSessions(Specialist specialist);
         List<User> GetSpecialistClients(Specialist specialist);
         List<Session> GetUserSessions(User user);
+        List<Session> GetProblemSessions(Problem problem);
     }
 }

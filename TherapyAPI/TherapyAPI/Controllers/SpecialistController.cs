@@ -488,7 +488,7 @@ namespace TherapyAPI.Controllers
                     Problem = new ProblemViewModel(problem),
                     Images = ProblemImageService.GetProblemImages(problem).Select(x => new ProblemImageViewModel(x)).ToList(),
                     Resources = ProblemResourceService.GetProblemResources(problem).Select(x => GetFullProblemResource(x)).ToList(),
-                    Sessions = SessionService.GetUserSessions(client).Select(x => GetSpecialistSession(x)).ToList()
+                    Sessions = SessionService.GetProblemSessions(problem).Select(x => GetSpecialistSession(x)).ToList()
                 }
             });
         }
@@ -1090,6 +1090,7 @@ namespace TherapyAPI.Controllers
                     Message = "Сессия не найдена"
                 });
 
+            session.SpecialistCloseDate = DateTime.UtcNow;
             session.IsSpecialistClose = true;
             SessionService.Update(session);
 
