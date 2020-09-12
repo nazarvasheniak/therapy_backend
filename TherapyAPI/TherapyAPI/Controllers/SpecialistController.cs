@@ -124,6 +124,8 @@ namespace TherapyAPI.Controllers
                 Specialist = GetFullSpecialist(session.Specialist),
                 IsSpecialistClose = session.IsSpecialistClose,
                 IsClientClose = session.IsClientClose,
+                SpecialistCloseDate = session.SpecialistCloseDate,
+                ClientCloseDate = session.ClientCloseDate,
                 SessionImagesCount = images.Where(x => x.Session == session).Count(),
                 TotalImagesCount = images.Count,
                 SessionResourcesCount = resources.Where(x => x.Session == session).Count(),
@@ -205,7 +207,9 @@ namespace TherapyAPI.Controllers
                 .Select(x => new ReviewViewModel(x))
                 .ToList();
 
-            var sessions = SessionService.GetSpecialistSessions(specialist);
+            var sessions = SessionService.GetSpecialistSessions(specialist)
+                .Where(x => x.IsClientClose && x.IsSpecialistClose)
+                .ToList();
 
             var clients = new HashSet<User>();
 
@@ -306,7 +310,7 @@ namespace TherapyAPI.Controllers
                 });
 
             var sessions = SessionService.GetSpecialistSessions(specialist)
-                .Where(x => !x.IsSpecialistClose)
+                .Where(x => x.Status == SessionStatus.Started && !x.IsSpecialistClose)
                 .Select(x => GetSessionClientCard(x))
                 .ToList();
 

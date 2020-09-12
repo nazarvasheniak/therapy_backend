@@ -12,6 +12,8 @@ namespace Domain.Models
         public virtual DateTime Date { get; set; }
         public virtual bool IsSpecialistClose { get; set; }
         public virtual bool IsClientClose { get; set; }
+        public virtual DateTime SpecialistCloseDate { get; set; }
+        public virtual DateTime ClientCloseDate { get; set; }
         public virtual bool Deleted { get; set; }
     }
 }

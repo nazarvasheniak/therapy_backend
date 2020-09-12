@@ -13,6 +13,8 @@ namespace Domain.ViewModels
         public DateTime Date { get; set; }
         public bool IsSpecialistClose { get; set; }
         public bool IsClientClose { get; set; }
+        public DateTime SpecialistCloseDate { get; set; }
+        public DateTime ClientCloseDate { get; set; }
         public int ReviewScore { get; set; }
 
         public SessionViewModel(Session session)
@@ -27,6 +29,8 @@ namespace Domain.ViewModels
                 Date = session.Date;
                 IsSpecialistClose = session.IsSpecialistClose;
                 IsClientClose = session.IsClientClose;
+                SpecialistCloseDate = session.SpecialistCloseDate;
+                ClientCloseDate = session.ClientCloseDate;
                 ReviewScore = 0;
             }
         }
@@ -43,6 +47,8 @@ namespace Domain.ViewModels
                 Date = session.Date;
                 IsSpecialistClose = session.IsSpecialistClose;
                 IsClientClose = session.IsClientClose;
+                SpecialistCloseDate = session.SpecialistCloseDate;
+                ClientCloseDate = session.ClientCloseDate;
                 ReviewScore = reviewScore;
             }
         }
@@ -59,6 +65,8 @@ namespace Domain.ViewModels
                 Date = session.Date;
                 IsSpecialistClose = session.IsSpecialistClose;
                 IsClientClose = session.IsClientClose;
+                SpecialistCloseDate = session.SpecialistCloseDate;
+                ClientCloseDate = session.ClientCloseDate;
                 ReviewScore = 0;
             }
         }
@@ -75,6 +83,8 @@ namespace Domain.ViewModels
                 Date = session.Date;
                 IsSpecialistClose = session.IsSpecialistClose;
                 IsClientClose = session.IsClientClose;
+                SpecialistCloseDate = session.SpecialistCloseDate;
+                ClientCloseDate = session.ClientCloseDate;
                 ReviewScore = reviewScore;
             }
         }

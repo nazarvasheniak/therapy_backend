@@ -20,6 +20,8 @@ namespace Storage.Mappings
             Map(u => u.Date, "session_date");
             Map(u => u.IsSpecialistClose, "is_specialist_close").Not.Nullable();
             Map(u => u.IsClientClose, "is_client_close").Not.Nullable();
+            Map(u => u.SpecialistCloseDate, "specialist_close_date");
+            Map(u => u.ClientCloseDate, "client_close_date");
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }
     }
