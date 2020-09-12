@@ -554,6 +554,13 @@ namespace TherapyAPI.Controllers
                     Message = "Кошелек не найден"
                 });
 
+            if (!session.IsSpecialistClose)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Сессию не завершил специалист"
+                });
+
             wallet.Balance -= session.Reward;
             UserWalletService.Update(wallet);
 
