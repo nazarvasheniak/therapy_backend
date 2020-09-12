@@ -18,6 +18,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Storage;
 using TherapyAPI.BackgroundServices;
+using TherapyAPI.WebSocketManager;
 
 namespace TherapyAPI
 {
@@ -35,8 +36,8 @@ namespace TherapyAPI
         {
             services.AddControllers();
             services.AddBuisnessServices();
-            //services.AddNHibernate("Server=localhost;Port=3306;Uid=root;Pwd=admin;Database=therapy_db;SslMode=required;");
-            services.AddNHibernate("Server=localhost;Port=3306;Uid=therapy_user;Pwd=LtxfGyCvNnh3;Database=therapy_db;SslMode=required;");
+            services.AddNHibernate("Server=localhost;Port=3306;Uid=root;Pwd=admin;Database=therapy_db;SslMode=required;");
+            //services.AddNHibernate("Server=localhost;Port=3306;Uid=therapy_user;Pwd=LtxfGyCvNnh3;Database=therapy_db;SslMode=required;");
             services.AddCors();
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -55,14 +56,6 @@ namespace TherapyAPI
                         ValidateIssuerSigningKey = true
                     };
                 });
-
-            // Register the Swagger generator, defining 1 or more Swagger documents
-            //services.AddSwaggerGen(c =>
-            //{
-            //    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Therapy API", Version = "v1" });
-            //    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme { In = ParameterLocation.Header, Description = "Please enter JWT with Bearer into field", Name = "Authorization", Type = SecuritySchemeType.Http });
-            //    c.AddSecurityRequirement(new OpenApiSecurityRequirement());
-            //});
 
             services.AddSwaggerGen(c =>
             {
@@ -105,7 +98,10 @@ namespace TherapyAPI
                 });
             });
 
+            services.AddScoped<NotificationsMessageHandler>();
             services.AddScoped<SessionsTimerService>();
+
+            services.AddWebSocketManager();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -136,7 +132,6 @@ namespace TherapyAPI
 
 
             app.UseRouting();
-
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseHttpsRedirection();
@@ -146,10 +141,16 @@ namespace TherapyAPI
                 endpoints.MapControllers();
             });
 
+            app.UseWebSockets();
+
+            var notifMessageHandler = serviceProvider.GetService<NotificationsMessageHandler>();
+            app.MapWebSocketManager("/notifications", notifMessageHandler);
+
             var sessionsService = serviceProvider.GetService<SessionsTimerService>();
             sessionsService.SetServices(
                 serviceProvider.GetService<ISessionService>(),
-                serviceProvider.GetService<IUserWalletService>());
+                serviceProvider.GetService<IUserWalletService>(),
+                serviceProvider.GetService<NotificationsMessageHandler>());
         }
     }
 }

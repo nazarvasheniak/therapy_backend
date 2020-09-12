@@ -11,6 +11,8 @@ using Domain.ViewModels.Request;
 using Domain.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TherapyAPI.WebSocketManager;
+using TherapyAPI.WebSocketManager.Enums;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -30,6 +32,8 @@ namespace TherapyAPI.Controllers
         private IProblemResourceService ProblemResourceService { get; set; }
         private IProblemResourceTaskService ProblemResourceTaskService { get; set; }
 
+        private NotificationsMessageHandler NotificationsService { get; set; }
+
         public PatientController([FromServices]
             IUserService userService,
             IProblemService problemService,
@@ -39,7 +43,8 @@ namespace TherapyAPI.Controllers
             IUserWalletService userWalletService,
             IProblemImageService problemImageService,
             IProblemResourceService problemResourceService,
-            IProblemResourceTaskService problemResourceTaskService)
+            IProblemResourceTaskService problemResourceTaskService,
+            NotificationsMessageHandler notificationsService)
         {
             UserService = userService;
             ProblemService = problemService;
@@ -50,6 +55,7 @@ namespace TherapyAPI.Controllers
             ProblemImageService = problemImageService;
             ProblemResourceService = problemResourceService;
             ProblemResourceTaskService = problemResourceTaskService;
+            NotificationsService = notificationsService;
         }
 
         private SpecialistViewModel GetFullSpecialist(long id)
@@ -558,6 +564,18 @@ namespace TherapyAPI.Controllers
             session.ClientCloseDate = DateTime.UtcNow;
             session.Status = SessionStatus.Success;
             SessionService.Update(session);
+
+            var clientActiveSessions = SessionService.GetActiveSessions(session.Problem.User);
+
+            NotificationsService.SendUpdateToUser(
+                session.Problem.User.ID,
+                SocketMessageType.BalanceUpdate,
+                new UserWalletViewModel(wallet, clientActiveSessions.Sum(x => x.Reward)));
+
+            NotificationsService.SendUpdateToUser(
+                session.Specialist.ID,
+                SocketMessageType.BalanceUpdate,
+                new UserWalletViewModel(specialistWallet, 0));
 
             return Ok(new ResponseModel());
         }

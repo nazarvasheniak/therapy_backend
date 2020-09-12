@@ -1,10 +1,13 @@
 ﻿using BusinessLogic.Interfaces;
 using Domain.Enums;
 using Domain.Models;
+using Domain.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TherapyAPI.WebSocketManager;
+using TherapyAPI.WebSocketManager.Enums;
 
 namespace TherapyAPI.BackgroundServices
 {
@@ -12,6 +15,7 @@ namespace TherapyAPI.BackgroundServices
     {
         private ISessionService SessionService { get; set; }
         private IUserWalletService UserWalletService { get; set; }
+        private NotificationsMessageHandler NotificationsService { get; set; }
 
         public SessionsTimerService()
         {
@@ -20,13 +24,17 @@ namespace TherapyAPI.BackgroundServices
 
         public void SetServices(
             ISessionService sessionService,
-            IUserWalletService userWalletService)
+            IUserWalletService userWalletService,
+            NotificationsMessageHandler notificationsService)
         {
             if (SessionService == null)
                 SessionService = sessionService;
 
             if (UserWalletService == null)
                 UserWalletService = userWalletService;
+
+            if (NotificationsService == null)
+                NotificationsService = notificationsService;
 
             StartTimers();
         }
@@ -48,7 +56,7 @@ namespace TherapyAPI.BackgroundServices
                 .ToList();
         }
 
-        private void CloseSession(Session session)
+        private async Task CloseSession(Session session)
         {
             var clientWallet = UserWalletService.GetUserWallet(session.Problem.User);
             var specialistWallet = UserWalletService.GetUserWallet(session.Specialist.User);
@@ -63,6 +71,25 @@ namespace TherapyAPI.BackgroundServices
             SessionService.Update(session);
             UserWalletService.Update(clientWallet);
             UserWalletService.Update(specialistWallet);
+
+            var clientActiveSessions = SessionService.GetActiveSessions(session.Problem.User);
+
+            await NotificationsService
+                .SendUpdateToUser(
+                    session.Problem.User.ID,
+                    SocketMessageType.ProblemSessionUpdate,
+                    session);
+
+            await NotificationsService
+                .SendUpdateToUser(
+                    session.Problem.User.ID,
+                    SocketMessageType.BalanceUpdate,
+                    new UserWalletViewModel(clientWallet, clientActiveSessions.Sum(x => x.Reward)));
+
+            await NotificationsService.SendUpdateToUser(
+                session.Specialist.ID,
+                SocketMessageType.BalanceUpdate,
+                new UserWalletViewModel(specialistWallet, 0));
         }
     }
 }

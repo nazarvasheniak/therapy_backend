@@ -21,6 +21,10 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Controllers\" />
+    <Folder Include="WebSocketManager\" />
+    <Folder Include="WebSocketManager\Interfaces\" />
+    <Folder Include="WebSocketManager\Models\" />
+    <Folder Include="WebSocketManager\Enums\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Controllers\WeatherForecastController.cs" />
