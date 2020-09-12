@@ -1090,24 +1090,18 @@ namespace TherapyAPI.Controllers
                     Message = "Сессия не найдена"
                 });
 
-            var wallet = WalletService.GetUserWallet(user);
-            if (wallet == null)
-                return NotFound(new ResponseModel
-                {
-                    Success = false,
-                    Message = "Кошелек не найден"
-                });
-
             session.IsSpecialistClose = true;
             SessionService.Update(session);
 
-            if (session.IsClientClose)
-            {
-                wallet.Balance += session.Reward;
-                WalletService.Update(wallet);
-            }
+            var sessions = SessionService.GetSpecialistSessions(specialist)
+                .Where(x => x.Status == SessionStatus.Started && !x.IsSpecialistClose)
+                .Select(x => GetSessionClientCard(x))
+                .ToList();
 
-            return Ok(new ResponseModel());
+            return Ok(new DataResponse<List<SpecialistProfileActiveSessionViewModel>>
+            {
+                Data = sessions
+            });
         }
     }
 }
