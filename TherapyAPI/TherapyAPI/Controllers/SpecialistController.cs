@@ -535,7 +535,7 @@ namespace TherapyAPI.Controllers
                     Message = "Ошибка доступа"
                 });
 
-            var session = SessionService.GetCurrentSession(client, specialist);
+            var session = SessionService.GetCurrentSession(problem);
             if (session == null)
                 return NotFound(new ResponseModel
                 {
@@ -631,7 +631,7 @@ namespace TherapyAPI.Controllers
                     Message = "Ошибка доступа"
                 });
 
-            var session = SessionService.GetCurrentSession(client, specialist);
+            var session = SessionService.GetCurrentSession(problem);
             if (session == null)
                 return NotFound(new ResponseModel
                 {
@@ -757,7 +757,7 @@ namespace TherapyAPI.Controllers
                     Message = "Образ не найден"
                 });
 
-            var session = SessionService.GetCurrentSession(client, specialist);
+            var session = SessionService.GetCurrentSession(problem);
             if (session == null)
                 return NotFound(new ResponseModel
                 {
@@ -835,7 +835,7 @@ namespace TherapyAPI.Controllers
                     Message = "Образ не найден"
                 });
 
-            var session = SessionService.GetCurrentSession(client, specialist);
+            var session = SessionService.GetCurrentSession(problem);
             if (session == null)
                 return NotFound(new ResponseModel
                 {
@@ -905,7 +905,7 @@ namespace TherapyAPI.Controllers
                     Message = "Ошибка доступа"
                 });
 
-            var session = SessionService.GetCurrentSession(client, specialist);
+            var session = SessionService.GetCurrentSession(problem);
             if (session == null)
                 return NotFound(new ResponseModel
                 {
@@ -987,7 +987,7 @@ namespace TherapyAPI.Controllers
                     Message = "Ошибка доступа"
                 });
 
-            var session = SessionService.GetCurrentSession(client, specialist);
+            var session = SessionService.GetCurrentSession(problem);
             if (session == null)
                 return NotFound(new ResponseModel
                 {
