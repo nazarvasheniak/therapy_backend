@@ -58,7 +58,8 @@ namespace BusinessLogic.Services
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimsIdentity.DefaultNameClaimType, user.ID.ToString())
+                new Claim(ClaimsIdentity.DefaultNameClaimType, user.ID.ToString()),
+                new Claim("role", user.Role.ToString())
             };
 
             var claimsIdentity = new ClaimsIdentity(
