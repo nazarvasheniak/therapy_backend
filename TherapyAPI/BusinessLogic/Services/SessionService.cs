@@ -33,7 +33,7 @@ namespace BusinessLogic.Services
 
         public List<Session> GetSpecialistSessions(Specialist specialist)
         {
-            return GetAll().Where(x => x.Specialist == specialist).ToList();
+            return GetAll().Where(x => x.Specialist == specialist).OrderBy(x => x.Date).ToList();
         }
 
         public List<User> GetSpecialistClients(Specialist specialist)
@@ -48,7 +48,7 @@ namespace BusinessLogic.Services
 
         public List<Session> GetUserSessions(User user)
         {
-            return GetAll().Where(x => x.Problem.User == user).ToList();
+            return GetAll().Where(x => x.Problem.User == user).OrderBy(x  => x.Date).ToList();
         }
 
         public List<Session> GetProblemSessions(Problem problem)

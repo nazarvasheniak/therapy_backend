@@ -139,7 +139,7 @@ namespace TherapyAPI.Controllers
 
             var result = new List<ArticleViewModel>();
 
-            var articles = ArticleService.GetAll()
+            var articles = ArticleService.GetAllArticles()
                 .Skip((query.PageNumber - 1) * query.PageSize)
                 .Take(query.PageSize)
                 .ToList();
@@ -176,7 +176,7 @@ namespace TherapyAPI.Controllers
         [HttpGet]
         public IActionResult GetArticles([FromQuery] GetList query)
         {
-            var all = ArticleService.GetAll().ToList();
+            var all = ArticleService.GetAllArticles();
 
             var articles = GetFullArticles(query);
 
@@ -236,11 +236,11 @@ namespace TherapyAPI.Controllers
                     Message = "Ошибка доступа"
                 });
 
-            var all = ArticleService.GetAll()
+            var all = ArticleService.GetAllArticles()
                 .Where(x => x.Author == specialist)
                 .ToList();
 
-            var articles = ArticleService.GetAll()
+            var articles = ArticleService.GetAllArticles()
                 .Where(x => x.Author == specialist)
                 .Skip((query.PageNumber - 1) * query.PageSize)
                 .Take(query.PageSize)

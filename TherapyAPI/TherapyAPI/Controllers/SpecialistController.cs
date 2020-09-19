@@ -78,6 +78,7 @@ namespace TherapyAPI.Controllers
 
             var sessions = SessionService.GetAll()
                     .Where(x => x.Problem.User == user && x.Specialist == specialist)
+                    .OrderBy(x => x.Date)
                     .ToList();
 
             var reviews = new List<ReviewViewModel>();
@@ -682,7 +683,7 @@ namespace TherapyAPI.Controllers
             if (problemImage.ParentImage != null)
                 parentImageID = problemImage.ParentImage.ID;
 
-            if (request.ParentImageID != parentImageID)
+            if (request.ParentImageID != 0 && request.ParentImageID != parentImageID)
             {
                 var newParentImage = ProblemImageService.Get(request.ParentImageID);
                 if (newParentImage == null)

@@ -5,6 +5,7 @@ namespace Domain.Models
     {
         public virtual User User { get; set; }
         public virtual string ProblemText { get; set; }
+        public virtual DateTime CreatedDate { get; set; }
         public virtual bool Deleted { get; set; }
     }
 }

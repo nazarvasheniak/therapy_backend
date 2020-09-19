@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using BusinessLogic.Interfaces;
 using Domain.Models;
@@ -10,6 +11,11 @@ namespace BusinessLogic.Services
     {
         public ArticleService(IRepository<Article> repository) : base(repository)
         {
+        }
+
+        public List<Article> GetAllArticles()
+        {
+            return GetAll().OrderBy(x => x.Date).ToList();
         }
 
         public bool IsArticleExist(string title)

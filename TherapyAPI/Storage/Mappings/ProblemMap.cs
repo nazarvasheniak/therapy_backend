@@ -15,6 +15,7 @@ namespace Storage.Mappings
             References(e => e.User, "id_user");
 
             Map(u => u.ProblemText, "problem_text").CustomSqlType("text").Length(1994967295);
+            Map(u => u.CreatedDate, "created_date");
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }
     }
