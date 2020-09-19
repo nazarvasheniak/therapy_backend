@@ -15,7 +15,7 @@ namespace BusinessLogic.Services
 
         public List<Article> GetAllArticles()
         {
-            return GetAll().OrderBy(x => x.Date).ToList();
+            return GetAll().OrderByDescending(x => x.Date).ToList();
         }
 
         public bool IsArticleExist(string title)

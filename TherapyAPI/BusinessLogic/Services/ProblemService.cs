@@ -20,7 +20,7 @@ namespace BusinessLogic.Services
 
         public List<Problem> GetUserProblems(User user)
         {
-            return GetAll().Where(x => x.User == user).OrderBy(x => x.CreatedDate).ToList();
+            return GetAll().Where(x => x.User == user).OrderByDescending(x => x.CreatedDate).ToList();
         }
     }
 }

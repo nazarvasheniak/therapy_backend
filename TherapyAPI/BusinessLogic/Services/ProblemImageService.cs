@@ -15,7 +15,7 @@ namespace BusinessLogic.Services
 
         public List<ProblemImage> GetProblemImages(Problem problem)
         {
-            return GetAll().Where(x => x.Session.Problem == problem).OrderBy(x => x.Session.Date).ToList();
+            return GetAll().Where(x => x.Session.Problem == problem).OrderByDescending(x => x.Session.Date).ToList();
         }
     }
 }

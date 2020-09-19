@@ -37,6 +37,7 @@ namespace TherapyAPI.Controllers
 
             var reviews = ReviewService.GetAll()
                 .Where(x => x.Session.Specialist == specialist)
+                .OrderByDescending(x => x.Session.Date)
                 .Select(x => new ReviewViewModel(x))
                 .ToList();
 
@@ -49,6 +50,7 @@ namespace TherapyAPI.Controllers
         {
             var reviews = ReviewService.GetAll()
                 .Where(x => x.Session.Specialist == specialist)
+                .OrderByDescending(x => x.Session.Date)
                 .Select(x => new ReviewViewModel(x))
                 .ToList();
 

@@ -59,6 +59,7 @@ namespace TherapyAPI.Controllers
         {
             var reviews = ReviewService.GetAll()
                 .Where(x => x.Session.Specialist == specialist)
+                .OrderByDescending(x => x.Session.Date)
                 .Select(x => new ReviewViewModel(x))
                 .ToList();
 
@@ -77,9 +78,9 @@ namespace TherapyAPI.Controllers
             };
 
             var sessions = SessionService.GetAll()
-                    .Where(x => x.Problem.User == user && x.Specialist == specialist)
-                    .OrderBy(x => x.Date)
-                    .ToList();
+                .Where(x => x.Problem.User == user && x.Specialist == specialist)
+                .OrderByDescending(x => x.Date)
+                .ToList();
 
             var reviews = new List<ReviewViewModel>();
 
@@ -205,6 +206,7 @@ namespace TherapyAPI.Controllers
 
             var reviews = ReviewService.GetAll()
                 .Where(x => x.Session.Specialist == specialist)
+                .OrderByDescending(x => x.Session.Date)
                 .Select(x => new ReviewViewModel(x))
                 .ToList();
 
@@ -283,6 +285,7 @@ namespace TherapyAPI.Controllers
                 });
 
             var sessions = SessionService.GetSpecialistSessions(specialist)
+                .Where(x => x.Status != SessionStatus.Waiting)
                 .Select(x => GetSpecialistSession(x))
                 .ToList();
 

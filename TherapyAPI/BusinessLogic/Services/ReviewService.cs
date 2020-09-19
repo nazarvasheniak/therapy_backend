@@ -37,24 +37,28 @@ namespace BusinessLogic.Services
                 case ReviewType.Positive:
                     return GetAll()
                         .Where(x => x.Session.Specialist == specialist && x.Score > 3)
+                        .OrderByDescending(x => x.Session.Date)
                         .Select(x => new ReviewViewModel(x))
                         .ToList();
 
                 case ReviewType.Neutral:
                     return GetAll()
                         .Where(x => x.Session.Specialist == specialist && x.Score == 3)
+                        .OrderByDescending(x => x.Session.Date)
                         .Select(x => new ReviewViewModel(x))
                         .ToList();
 
                 case ReviewType.Negative:
                     return GetAll()
                         .Where(x => x.Session.Specialist == specialist && x.Score < 3)
+                        .OrderByDescending(x => x.Session.Date)
                         .Select(x => new ReviewViewModel(x))
                         .ToList();
 
                 default:
                     return GetAll()
                         .Where(x => x.Session.Specialist == specialist)
+                        .OrderByDescending(x => x.Session.Date)
                         .Select(x => new ReviewViewModel(x))
                         .ToList();
             }

@@ -33,13 +33,15 @@ namespace BusinessLogic.Services
 
         public List<Session> GetSpecialistSessions(Specialist specialist)
         {
-            return GetAll().Where(x => x.Specialist == specialist).OrderBy(x => x.Date).ToList();
+            return GetAll().Where(x => x.Specialist == specialist).OrderByDescending(x => x.Date).ToList();
         }
 
         public List<User> GetSpecialistClients(Specialist specialist)
         {
             var list = new HashSet<User>();
-            var sessions = GetAll().Where(x => x.Specialist == specialist).ToList();
+            var sessions = GetAll()
+                .Where(x => x.Specialist == specialist && x.Status != SessionStatus.Waiting)
+                .ToList();
 
             sessions.ForEach(x => list.Add(x.Problem.User));
 
@@ -48,7 +50,7 @@ namespace BusinessLogic.Services
 
         public List<Session> GetUserSessions(User user)
         {
-            return GetAll().Where(x => x.Problem.User == user).OrderBy(x  => x.Date).ToList();
+            return GetAll().Where(x => x.Problem.User == user).OrderByDescending(x  => x.Date).ToList();
         }
 
         public List<Session> GetProblemSessions(Problem problem)

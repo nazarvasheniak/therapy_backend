@@ -121,7 +121,11 @@ namespace TherapyAPI.Controllers
                     Message = "Пользователь не найден"
                 });
 
-            var problems = ProblemService.GetAll().Where(x => x.User == user).Select(x => new ProblemViewModel(x)).ToList();
+            var problems = ProblemService.GetAll()
+                .Where(x => x.User == user)
+                .OrderByDescending(x => x.CreatedDate)
+                .Select(x => new ProblemViewModel(x))
+                .ToList();
 
             return Ok(new DataResponse<List<ProblemViewModel>>
             {
@@ -213,7 +217,7 @@ namespace TherapyAPI.Controllers
 
             var sessions = SessionService.GetAll()
                 .Where(x => x.Problem == problem)
-                .OrderBy(x => x.Date)
+                .OrderByDescending(x => x.Date)
                 .Select(x => GetFullSession(x))
                 .ToList();
 
