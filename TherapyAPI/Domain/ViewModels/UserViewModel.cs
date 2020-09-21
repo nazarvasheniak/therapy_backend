@@ -10,6 +10,7 @@ namespace Domain.ViewModels
         public string LastName { get; set; }
         public string PhoneNumber { get; set; }
         public string Email { get; set; }
+        public FileViewModel Photo { get; set; }
         public UserRole Role { get; set; }
         public DateTime RegisteredAt { get; set; }
 
@@ -22,6 +23,7 @@ namespace Domain.ViewModels
                 LastName = user.LastName;
                 PhoneNumber = user.PhoneNumber;
                 Email = user.Email;
+                Photo = new FileViewModel(user.Photo);
                 Role = user.Role;
                 RegisteredAt = user.RegisteredAt;
             }

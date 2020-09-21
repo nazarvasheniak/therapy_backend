@@ -10,6 +10,7 @@ namespace Domain.Models
         public virtual string LastName { get; set; }
         public virtual string PhoneNumber { get; set; }
         public virtual string Email { get; set; }
+        public virtual File Photo { get; set; }
         public virtual UserRole Role { get; set; }
         public virtual DateTime RegisteredAt { get; set; }
         public virtual bool Deleted { get; set; }

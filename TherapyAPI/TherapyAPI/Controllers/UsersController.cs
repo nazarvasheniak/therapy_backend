@@ -126,5 +126,28 @@ namespace TherapyAPI.Controllers
 
             return Ok(new ResponseModel());
         }
+
+        [HttpPut("avatar")]
+        public IActionResult UploadAvatarImage([FromForm] UploadFileFormRequest request)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var file = FileService.SaveFileForm(request.File);
+            file.Wait();
+
+            user.Photo = file.Result;
+            UserService.Update(user);
+
+            return Ok(new DataResponse<FileViewModel>
+            {
+                Data = new FileViewModel(user.Photo)
+            });
+        }
     }
 }

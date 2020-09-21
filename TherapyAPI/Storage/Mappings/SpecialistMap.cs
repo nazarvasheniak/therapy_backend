@@ -13,7 +13,6 @@ namespace Storage.Mappings
             Id(u => u.ID, "id");
 
             References(e => e.User, "id_user");
-            References(e => e.Photo, "id_photo");
 
             Map(u => u.Price, "price");
             Map(u => u.Description, "description").CustomSqlType("text").Length(1994967295);

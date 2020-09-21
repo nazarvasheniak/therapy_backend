@@ -12,6 +12,8 @@ namespace Storage.Mappings
             Table("users");
             Id(u => u.ID, "id");
 
+            References(e => e.Photo, "id_photo");
+
             Map(u => u.FirstName, "first_name");
             Map(u => u.LastName, "last_name");
             Map(u => u.PhoneNumber, "phone_num");
