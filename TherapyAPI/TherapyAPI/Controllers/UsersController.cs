@@ -168,6 +168,10 @@ namespace TherapyAPI.Controllers
 
                 user.Photo = file.Result;
             }
+            else
+            {
+                user.Photo = null;
+            }
 
             if (request.FirstName != user.FirstName)
                 user.FirstName = request.FirstName;
