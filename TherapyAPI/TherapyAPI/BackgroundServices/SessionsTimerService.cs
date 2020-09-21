@@ -44,8 +44,14 @@ namespace TherapyAPI.BackgroundServices
             var sessions = GetActiveSessions();
             sessions.ForEach(session =>
             {
-                var endTime = session.SpecialistCloseDate.AddDays(1) - DateTime.UtcNow;
-                Task.Delay(endTime).ContinueWith(o => CloseSession(session));
+                try
+                {
+                    var endTime = session.SpecialistCloseDate.AddDays(1) - DateTime.UtcNow;
+                    Task.Delay(endTime).ContinueWith(o => CloseSession(session));
+                } catch
+                {
+
+                }
             });
         }
 
