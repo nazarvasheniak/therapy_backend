@@ -352,37 +352,6 @@ namespace TherapyAPI.Controllers
             });
         }
 
-        [HttpPut("avatar")]
-        public IActionResult UploadAvatarImage([FromForm] UploadFileFormRequest request)
-        {
-            var user = UserService.Get(long.Parse(User.Identity.Name));
-            if (user == null)
-                return NotFound(new ResponseModel
-                {
-                    Success = false,
-                    Message = "Пользователь не найден"
-                });
-
-            var specialist = SpecialistService.GetSpecialistFromUser(user);
-            if (specialist == null)
-                return NotFound(new ResponseModel
-                {
-                    Success = false,
-                    Message = "Специалист не найден"
-                });
-
-            var file = FileService.SaveFileForm(request.File);
-            file.Wait();
-
-            specialist.Photo = file.Result;
-            SpecialistService.Update(specialist);
-
-            return Ok(new DataResponse<FileViewModel>
-            {
-                Data = new FileViewModel(specialist.Photo)
-            });
-        }
-
         [HttpGet("clients")]
         public IActionResult GetClients([FromQuery] GetList query)
         {
