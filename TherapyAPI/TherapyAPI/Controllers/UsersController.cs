@@ -149,5 +149,38 @@ namespace TherapyAPI.Controllers
                 Data = new FileViewModel(user.Photo)
             });
         }
+
+        [HttpPut("settings")]
+        public IActionResult ChangeUserSettings([FromForm] ChangeSettingsRequest request)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            if (request.Avatar != null)
+            {
+                var file = FileService.SaveFileForm(request.Avatar);
+                file.Wait();
+
+                user.Photo = file.Result;
+            }
+
+            if (request.FirstName != user.FirstName)
+                user.FirstName = request.FirstName;
+
+            if (request.LastName != user.LastName)
+                user.LastName = request.LastName;
+
+            UserService.Update(user);
+
+            return Ok(new DataResponse<UserViewModel>
+            {
+                Data = new UserViewModel(user)
+            });
+        }
     }
 }
