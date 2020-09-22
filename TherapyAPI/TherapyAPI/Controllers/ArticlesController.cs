@@ -173,6 +173,151 @@ namespace TherapyAPI.Controllers
             return result;
         }
 
+        private List<ArticleViewModel> GetFullArticles(GetArticlesList query)
+        {
+            var isLoggedIn = false;
+
+            User user = null;
+
+            if (User.Identity.Name != null)
+            {
+                user = UserService.Get(long.Parse(User.Identity.Name));
+
+                if (user != null)
+                    isLoggedIn = true;
+            }
+
+            var result = new List<ArticleViewModel>();
+            var articles = new List<Article>();
+
+            if (query.OrderBy == OrderBy.ASC)
+            {
+                switch (query.SortBy)
+                {
+                    case ArticlesSort.Comments:
+                        {
+                            articles.AddRange(ArticleService.GetAll().ToList()
+                                .OrderBy(x => ArticleCommentService.GetArticleCommentsCount(x))
+                                .Skip((query.PageNumber - 1) * query.PageSize)
+                                .Take(query.PageSize)
+                                .ToList());
+
+                            break;
+                        }
+
+                    case ArticlesSort.Likes:
+                        {
+                            articles.AddRange(ArticleService.GetAll().ToList()
+                                .OrderBy(x => ArticleLikeService.GetArticleLikesCount(x))
+                                .Skip((query.PageNumber - 1) * query.PageSize)
+                                .Take(query.PageSize)
+                                .ToList());
+
+                            break;
+                        }
+
+                    case ArticlesSort.Date:
+                        {
+                            articles.AddRange(ArticleService.GetAll().ToList()
+                                .OrderBy(x => x.Date)
+                                .Skip((query.PageNumber - 1) * query.PageSize)
+                                .Take(query.PageSize)
+                                .ToList());
+
+                            break;
+                        }
+
+                    default:
+                        {
+                            articles.AddRange(ArticleService.GetAll().ToList()
+                                .OrderBy(x => x.Date)
+                                .Skip((query.PageNumber - 1) * query.PageSize)
+                                .Take(query.PageSize)
+                                .ToList());
+
+                            break;
+                        }
+                }
+            }
+            else
+            {
+                switch (query.SortBy)
+                {
+                    case ArticlesSort.Comments:
+                        {
+                            articles.AddRange(ArticleService.GetAll().ToList()
+                                .OrderByDescending(x => ArticleCommentService.GetArticleCommentsCount(x))
+                                .Skip((query.PageNumber - 1) * query.PageSize)
+                                .Take(query.PageSize)
+                                .ToList());
+
+                            break;
+                        }
+
+                    case ArticlesSort.Likes:
+                        {
+                            articles.AddRange(ArticleService.GetAll().ToList()
+                                .OrderByDescending(x => ArticleLikeService.GetArticleLikesCount(x))
+                                .Skip((query.PageNumber - 1) * query.PageSize)
+                                .Take(query.PageSize)
+                                .ToList());
+
+                            break;
+                        }
+
+                    case ArticlesSort.Date:
+                        {
+                            articles.AddRange(ArticleService.GetAll().ToList()
+                                .OrderByDescending(x => x.Date)
+                                .Skip((query.PageNumber - 1) * query.PageSize)
+                                .Take(query.PageSize)
+                                .ToList());
+
+                            break;
+                        }
+
+                    default:
+                        {
+                            articles.AddRange(ArticleService.GetAll().ToList()
+                                .OrderByDescending(x => x.Date)
+                                .Skip((query.PageNumber - 1) * query.PageSize)
+                                .Take(query.PageSize)
+                                .ToList());
+
+                            break;
+                        }
+                }
+            }
+
+            articles.ForEach(article =>
+            {
+                var likes = ArticleLikeService.GetAll()
+                    .Where(x => x.Article == article)
+                    .ToList();
+
+                var comments = ArticleCommentService.GetAll()
+                    .Where(x => x.Article == article)
+                    .ToList();
+
+                var isLiked = false;
+
+                if (isLoggedIn)
+                {
+                    if (likes.FirstOrDefault(x => x.Author == user) != null)
+                    {
+                        isLiked = true;
+                    }
+                }
+
+                var articleViewModel = new ArticleViewModel(article, likes, comments, isLiked);
+                articleViewModel.Author.Rating = ReviewService.GetSpecialistRating(article.Author);
+
+                result.Add(articleViewModel);
+            });
+
+            return result;
+        }
+
         [HttpGet]
         public IActionResult GetArticles([FromQuery] GetList query)
         {
@@ -185,6 +330,24 @@ namespace TherapyAPI.Controllers
                 Data = articles,
                 PageSize = query.PageSize,
                 CurrentPage = query.PageNumber,
+                TotalPages = (int)Math.Ceiling(all.Count / (double)query.PageSize)
+            });
+        }
+
+        [HttpGet("sorted")]
+        public IActionResult GetSortedArticles([FromQuery] GetArticlesList query)
+        {
+            var all = ArticleService.GetAllArticles();
+
+            var articles = GetFullArticles(query);
+
+            return Ok(new ArticlesListResponse
+            {
+                Data = articles,
+                PageSize = query.PageSize,
+                CurrentPage = query.PageNumber,
+                SortBy = query.SortBy,
+                OrderBy = query.OrderBy,
                 TotalPages = (int)Math.Ceiling(all.Count / (double)query.PageSize)
             });
         }

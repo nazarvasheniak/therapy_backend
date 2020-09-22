@@ -34,5 +34,21 @@ namespace BusinessLogic.Services
                 .Select(x => new ArticleCommentViewModel(x, GetCommentReplies(x)))
                 .ToList();
         }
+
+        public long GetArticleCommentsCount(Article article)
+        {
+            long result = 0;
+
+            var comments = GetAll().Where(x => x.Article == article).ToList();
+            result += comments.Count;
+
+            comments.ForEach(comment =>
+            {
+                var replies = GetCommentReplies(comment);
+                result += replies.Count;
+            });
+
+            return result;
+        }
     }
 }

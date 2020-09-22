@@ -5,5 +5,6 @@ namespace BusinessLogic.Interfaces
 {
     public interface IArticleLikeService : IBaseCrudService<ArticleLike>
     {
+        long GetArticleLikesCount(Article article);
     }
 }

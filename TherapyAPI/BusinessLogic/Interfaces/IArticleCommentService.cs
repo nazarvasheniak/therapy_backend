@@ -9,5 +9,6 @@ namespace BusinessLogic.Interfaces
     {
         List<ArticleCommentViewModel> GetArticleComments(Article article);
         List<ArticleCommentViewModel> GetCommentReplies(ArticleComment comment);
+        long GetArticleCommentsCount(Article article);
     }
 }

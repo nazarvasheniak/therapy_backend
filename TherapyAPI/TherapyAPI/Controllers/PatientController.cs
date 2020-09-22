@@ -107,6 +107,18 @@ namespace TherapyAPI.Controllers
             return result;
         }
 
+        private bool IsProblemInWork(Problem problem)
+        {
+            var sessions = SessionService.GetProblemSessions(problem)
+                .Where(x => x.Status == SessionStatus.Started)
+                .ToList();
+
+            if (sessions.Count != 0)
+                return true;
+
+            return false;
+        }
+
         [HttpGet("problems")]
         public IActionResult GetProblems()
         {
@@ -123,6 +135,34 @@ namespace TherapyAPI.Controllers
 
             var problems = ProblemService.GetAll()
                 .Where(x => x.User == user)
+                .OrderByDescending(x => x.CreatedDate)
+                .Select(x => new ProblemViewModel(x))
+                .ToList();
+
+            return Ok(new DataResponse<List<ProblemViewModel>>
+            {
+                Data = problems
+            });
+        }
+
+        [HttpGet("problems/available")]
+        public IActionResult GetAvailableProblems()
+        {
+            if (User.Identity.Name == null)
+                return Ok();
+
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var problems = ProblemService.GetAll()
+                .Where(x => x.User == user)
+                .ToList()
+                .Where(x => !IsProblemInWork(x))
                 .OrderByDescending(x => x.CreatedDate)
                 .Select(x => new ProblemViewModel(x))
                 .ToList();

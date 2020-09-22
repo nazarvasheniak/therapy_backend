@@ -18,13 +18,16 @@ namespace TherapyAPI.Controllers
     public class SpecialistsController : Controller
     {
         private ISpecialistService SpecialistService { get; set; }
+        private ISessionService SessionService { get; set; }
         private IReviewService ReviewService { get; set; }
 
         public SpecialistsController([FromServices]
             ISpecialistService specialistService,
+            ISessionService  sessionService,
             IReviewService reviewService)
         {
             SpecialistService = specialistService;
+            SessionService = sessionService;
             ReviewService = reviewService;
         }
 
@@ -73,6 +76,115 @@ namespace TherapyAPI.Controllers
             return result;
         }
 
+        private List<SpecialistViewModel> GetFullSpecialists(GetSpecialistsList query)
+        {
+            var result = new List<SpecialistViewModel>();
+            var specialists = new List<Specialist>();
+
+            if (query.OrderBy == OrderBy.ASC)
+            {
+                switch (query.SortBy)
+                {
+                    case SpecialistsSort.Price:
+                        {
+                            specialists.AddRange(SpecialistService.GetAll().ToList()
+                                .OrderBy(x => x.Price)
+                                .Skip((query.PageNumber - 1) * query.PageSize)
+                                .Take(query.PageSize)
+                                .ToList());
+
+                            break;
+                        }
+
+                    case SpecialistsSort.Rating:
+                        {
+                            specialists.AddRange(SpecialistService.GetAll().ToList()
+                                .OrderBy(x => ReviewService.GetSpecialistRating(x))
+                                .Skip((query.PageNumber - 1) * query.PageSize)
+                                .Take(query.PageSize)
+                                .ToList());
+
+                            break;
+                        }
+
+                    case SpecialistsSort.Reviews:
+                        {
+                            specialists.AddRange(SpecialistService.GetAll().ToList()
+                                .OrderBy(x => SessionService.GetSpecialistSessions(x).Count)
+                                .Skip((query.PageNumber - 1) * query.PageSize)
+                                .Take(query.PageSize)
+                                .ToList());
+
+                            break;
+                        }
+
+                    default:
+                        {
+                            specialists.AddRange(SpecialistService.GetAll().ToList()
+                                .OrderBy(x => x.Price)
+                                .Skip((query.PageNumber - 1) * query.PageSize)
+                                .Take(query.PageSize)
+                                .ToList());
+
+                            break;
+                        }
+                }
+            }
+            else
+            {
+                switch (query.SortBy)
+                {
+                    case SpecialistsSort.Price:
+                        {
+                            specialists.AddRange(SpecialistService.GetAll().ToList()
+                                .OrderByDescending(x => x.Price)
+                                .Skip((query.PageNumber - 1) * query.PageSize)
+                                .Take(query.PageSize)
+                                .ToList());
+
+                            break;
+                        }
+
+                    case SpecialistsSort.Rating:
+                        {
+                            specialists.AddRange(SpecialistService.GetAll().ToList()
+                                .OrderByDescending(x => ReviewService.GetSpecialistRating(x))
+                                .Skip((query.PageNumber - 1) * query.PageSize)
+                                .Take(query.PageSize)
+                                .ToList());
+
+                            break;
+                        }
+
+                    case SpecialistsSort.Reviews:
+                        {
+                            specialists.AddRange(SpecialistService.GetAll().ToList()
+                                .OrderByDescending(x => SessionService.GetSpecialistSessions(x).Count)
+                                .Skip((query.PageNumber - 1) * query.PageSize)
+                                .Take(query.PageSize)
+                                .ToList());
+
+                            break;
+                        }
+
+                    default:
+                        {
+                            specialists.AddRange(SpecialistService.GetAll().ToList()
+                                .OrderByDescending(x => x.Price)
+                                .Skip((query.PageNumber - 1) * query.PageSize)
+                                .Take(query.PageSize)
+                                .ToList());
+
+                            break;
+                        }
+                }
+            }
+
+            specialists.ForEach(specialist => result.Add(GetFullSpecialist(specialist)));
+
+            return result;
+        }
+
         [HttpGet]
         public IActionResult GetSpecialists([FromQuery] GetList query)
         {
@@ -84,6 +196,23 @@ namespace TherapyAPI.Controllers
                 Data = specialists,
                 PageSize = query.PageSize,
                 CurrentPage = query.PageNumber,
+                TotalPages = (int)Math.Ceiling(all.Count / (double)query.PageSize)
+            });
+        }
+
+        [HttpGet("sorted")]
+        public IActionResult GetSpecialists([FromQuery] GetSpecialistsList query)
+        {
+            var all = SpecialistService.GetAll().ToList();
+            var specialists = GetFullSpecialists(query);
+
+            return Ok(new SpecialistsListResponse
+            {
+                Data = specialists,
+                PageSize = query.PageSize,
+                CurrentPage = query.PageNumber,
+                SortBy = query.SortBy,
+                OrderBy = query.OrderBy,
                 TotalPages = (int)Math.Ceiling(all.Count / (double)query.PageSize)
             });
         }
