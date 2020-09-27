@@ -11,6 +11,7 @@ using Domain.ViewModels.Request;
 using Domain.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TherapyAPI.BackgroundServices;
 using TherapyAPI.WebSocketManager;
 using TherapyAPI.WebSocketManager.Enums;
 
@@ -55,6 +56,7 @@ namespace TherapyAPI.Controllers
             ProblemImageService = problemImageService;
             ProblemResourceService = problemResourceService;
             ProblemResourceTaskService = problemResourceTaskService;
+
             NotificationsService = notificationsService;
         }
 

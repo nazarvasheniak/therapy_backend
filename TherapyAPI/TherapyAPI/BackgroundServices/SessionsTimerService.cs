@@ -17,6 +17,8 @@ namespace TherapyAPI.BackgroundServices
         private IUserWalletService UserWalletService { get; set; }
         private NotificationsMessageHandler NotificationsService { get; set; }
 
+        private List<Session> SessionsQuenue = new List<Session>();
+
         public SessionsTimerService()
         {
 
@@ -36,23 +38,25 @@ namespace TherapyAPI.BackgroundServices
             if (NotificationsService == null)
                 NotificationsService = notificationsService;
 
+            SessionsQuenue.AddRange(GetActiveSessions());
             StartTimers();
+        }
+
+        public void AddSession(Session session)
+        {
+            SessionsQuenue.Add(session);
+            StartSessionTimer(session);
         }
 
         private void StartTimers()
         {
-            var sessions = GetActiveSessions();
-            sessions.ForEach(session =>
-            {
-                try
-                {
-                    var endTime = session.SpecialistCloseDate.AddDays(1) - DateTime.UtcNow;
-                    Task.Delay(endTime).ContinueWith(o => CloseSession(session));
-                } catch
-                {
+            SessionsQuenue.ForEach(session => StartSessionTimer(session));
+        }
 
-                }
-            });
+        private void StartSessionTimer(Session session)
+        {
+            var endTime = session.SpecialistCloseDate.AddDays(1) - DateTime.UtcNow;
+            Task.Delay(endTime).ContinueWith(o => CloseSession(session));
         }
 
         private List<Session> GetActiveSessions()
@@ -62,8 +66,15 @@ namespace TherapyAPI.BackgroundServices
                 .ToList();
         }
 
-        private async Task CloseSession(Session session)
+        private void CloseSession(Session session)
         {
+            var renewSession = SessionService.Get(session.ID);
+            if (renewSession.IsClientClose)
+            {
+                SessionsQuenue.Remove(session);
+                return;
+            }
+
             var clientWallet = UserWalletService.GetUserWallet(session.Problem.User);
             var specialistWallet = UserWalletService.GetUserWallet(session.Specialist.User);
 
@@ -78,24 +89,7 @@ namespace TherapyAPI.BackgroundServices
             UserWalletService.Update(clientWallet);
             UserWalletService.Update(specialistWallet);
 
-            var clientActiveSessions = SessionService.GetActiveSessions(session.Problem.User);
-
-            await NotificationsService
-                .SendUpdateToUser(
-                    session.Problem.User.ID,
-                    SocketMessageType.ProblemSessionUpdate,
-                    session);
-
-            await NotificationsService
-                .SendUpdateToUser(
-                    session.Problem.User.ID,
-                    SocketMessageType.BalanceUpdate,
-                    new UserWalletViewModel(clientWallet, clientActiveSessions.Sum(x => x.Reward)));
-
-            await NotificationsService.SendUpdateToUser(
-                session.Specialist.ID,
-                SocketMessageType.BalanceUpdate,
-                new UserWalletViewModel(specialistWallet, 0));
+            SessionsQuenue.Remove(session);
         }
     }
 }

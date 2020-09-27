@@ -30,8 +30,8 @@ namespace TherapyAPI
         {
             services.AddControllers();
             services.AddBuisnessServices();
-            services.AddNHibernate("Server=localhost;Port=3306;Uid=root;Pwd=admin;Database=therapy_db;SslMode=required;");
-            //services.AddNHibernate("Server=localhost;Port=3306;Uid=therapy_user;Pwd=LtxfGyCvNnh3;Database=therapy_db;SslMode=required;");
+            //services.AddNHibernate("Server=localhost;Port=3306;Uid=root;Pwd=admin;Database=therapy_db;SslMode=required;");
+            services.AddNHibernate("Server=localhost;Port=3306;Uid=therapy_user;Pwd=LtxfGyCvNnh3;Database=therapy_db;SslMode=required;");
             services.AddCors();
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

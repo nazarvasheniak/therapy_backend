@@ -10,6 +10,7 @@ using Domain.ViewModels.Request;
 using Domain.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TherapyAPI.BackgroundServices;
 using Utils;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -31,6 +32,8 @@ namespace TherapyAPI.Controllers
         private IProblemResourceService ProblemResourceService { get; set; }
         private IProblemResourceTaskService ProblemResourceTaskService { get; set; }
 
+        private SessionsTimerService SessionsTimerService { get; set; }
+
         public SpecialistController([FromServices]
             IUserService userService,
             IFileService fileService,
@@ -41,7 +44,8 @@ namespace TherapyAPI.Controllers
             IProblemService problemService,
             IProblemImageService problemImageService,
             IProblemResourceService problemResourceService,
-            IProblemResourceTaskService problemResourceTaskService)
+            IProblemResourceTaskService problemResourceTaskService,
+            SessionsTimerService sessionsTimerService)
         {
             UserService = userService;
             FileService = fileService;
@@ -53,6 +57,8 @@ namespace TherapyAPI.Controllers
             ProblemImageService = problemImageService;
             ProblemResourceService = problemResourceService;
             ProblemResourceTaskService = problemResourceTaskService;
+
+            SessionsTimerService = sessionsTimerService;
         }
 
         private SpecialistViewModel GetFullSpecialist(Specialist specialist)
@@ -1066,6 +1072,8 @@ namespace TherapyAPI.Controllers
             session.SpecialistCloseDate = DateTime.UtcNow;
             session.IsSpecialistClose = true;
             SessionService.Update(session);
+
+            SessionsTimerService.AddSession(session);
 
             var sessions = SessionService.GetSpecialistSessions(specialist)
                 .Where(x => x.Status == SessionStatus.Started && !x.IsSpecialistClose)
