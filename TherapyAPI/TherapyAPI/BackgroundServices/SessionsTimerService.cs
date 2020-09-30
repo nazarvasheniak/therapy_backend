@@ -62,7 +62,7 @@ namespace TherapyAPI.BackgroundServices
         private List<Session> GetActiveSessions()
         {
             return SessionService.GetAll()
-                .Where(x => x.IsSpecialistClose && !x.IsClientClose && (x.SpecialistCloseDate < DateTime.UtcNow))
+                .Where(x => x.IsSpecialistClose && !x.IsClientClose)
                 .ToList();
         }
 

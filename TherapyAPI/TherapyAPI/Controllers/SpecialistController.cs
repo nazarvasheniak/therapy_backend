@@ -300,6 +300,41 @@ namespace TherapyAPI.Controllers
             return Ok(response);
         }
 
+        [HttpGet("sessions/{sessionID}")]
+        public IActionResult GetSession(long sessionID)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var specialist = SpecialistService.GetSpecialistFromUser(user);
+            if (specialist == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Специалист не найден"
+                });
+
+            var session = SessionService.GetSpecialistSessions(specialist)
+                .FirstOrDefault(x => x.ID == sessionID);
+
+            if (session == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Сессия не найдена"
+                });
+
+            return Ok(new DataResponse<SpecialistSessionViewModel>
+            {
+                Data = GetSpecialistSession(session)
+            });
+        }
+
         [HttpGet("sessions/active")]
         public IActionResult GetActiveSession()
         {
@@ -672,6 +707,10 @@ namespace TherapyAPI.Controllers
                     });
 
                 problemImage.ParentImage = newParentImage;
+            }
+            else if (request.ParentImageID == 0)
+            {
+                problemImage.ParentImage = null;
             }
 
             ProblemImageService.Update(problemImage);
