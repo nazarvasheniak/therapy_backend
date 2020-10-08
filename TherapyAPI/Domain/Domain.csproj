@@ -14,4 +14,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ViewModels\Superadmin\" />
+    <Folder Include="ViewModels\Superadmin\Request\" />
+    <Folder Include="ViewModels\Superadmin\Enums\" />
+    <Folder Include="ViewModels\Superadmin\Response\" />
+  </ItemGroup>
 </Project>

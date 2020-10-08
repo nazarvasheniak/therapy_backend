@@ -330,7 +330,8 @@ namespace TherapyAPI.Controllers
                 Data = articles,
                 PageSize = query.PageSize,
                 CurrentPage = query.PageNumber,
-                TotalPages = (int)Math.Ceiling(all.Count / (double)query.PageSize)
+                TotalPages = (int)Math.Ceiling(all.Count / (double)query.PageSize),
+                TotalItems = all.Count
             });
         }
 
@@ -348,7 +349,8 @@ namespace TherapyAPI.Controllers
                 CurrentPage = query.PageNumber,
                 SortBy = query.SortBy,
                 OrderBy = query.OrderBy,
-                TotalPages = (int)Math.Ceiling(all.Count / (double)query.PageSize)
+                TotalPages = (int)Math.Ceiling(all.Count / (double)query.PageSize),
+                TotalItems = all.Count
             });
         }
 
@@ -415,7 +417,8 @@ namespace TherapyAPI.Controllers
                 Data = articles,
                 PageSize = query.PageSize,
                 CurrentPage = query.PageNumber,
-                TotalPages = (int)Math.Ceiling(all.Count / (double)query.PageSize)
+                TotalPages = (int)Math.Ceiling(all.Count / (double)query.PageSize),
+                TotalItems = all.Count
             });
         }
 

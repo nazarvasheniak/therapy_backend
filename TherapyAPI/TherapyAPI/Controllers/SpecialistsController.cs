@@ -196,7 +196,8 @@ namespace TherapyAPI.Controllers
                 Data = specialists,
                 PageSize = query.PageSize,
                 CurrentPage = query.PageNumber,
-                TotalPages = (int)Math.Ceiling(all.Count / (double)query.PageSize)
+                TotalPages = (int)Math.Ceiling(all.Count / (double)query.PageSize),
+                TotalItems = all.Count
             });
         }
 
@@ -213,7 +214,8 @@ namespace TherapyAPI.Controllers
                 CurrentPage = query.PageNumber,
                 SortBy = query.SortBy,
                 OrderBy = query.OrderBy,
-                TotalPages = (int)Math.Ceiling(all.Count / (double)query.PageSize)
+                TotalPages = (int)Math.Ceiling(all.Count / (double)query.PageSize),
+                TotalItems = all.Count
             });
         }
 
@@ -254,7 +256,8 @@ namespace TherapyAPI.Controllers
                 Data = reviews.Skip((query.PageNumber - 1) * query.PageSize).Take(query.PageSize).ToList(),
                 PageSize = query.PageSize,
                 CurrentPage = query.PageNumber,
-                TotalPages = (int)Math.Ceiling(reviews.Count / (double)query.PageSize)
+                TotalPages = (int)Math.Ceiling(reviews.Count / (double)query.PageSize),
+                TotalItems = reviews.Count
             });                    
         }
     }

@@ -68,5 +68,16 @@ namespace BusinessLogic.Services
         {
             return GetAll().FirstOrDefault(x => x.Session == session);
         }
+
+        public double GetUserAverageScore(User user)
+        {
+            var reviews = GetAll().Where(x => x.Session.Problem.User == user).ToList();
+            if (reviews == null || reviews.Count == 0)
+                return 0;
+
+            var average = reviews.Average(x => x.Score);
+
+            return average;
+        }
     }
 }

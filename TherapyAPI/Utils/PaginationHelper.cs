@@ -17,6 +17,7 @@ namespace Utils
                 PageSize = query.PageSize,
                 CurrentPage = query.PageNumber,
                 TotalPages = (int)Math.Ceiling(collection.Count() / (double)query.PageSize),
+                TotalItems = collection.ToList().Count,
                 Data = collection
                     .Skip((query.PageNumber - 1) * query.PageSize)
                     .Take(query.PageSize)
