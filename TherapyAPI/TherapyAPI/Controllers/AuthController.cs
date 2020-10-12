@@ -46,7 +46,7 @@ namespace TherapyAPI.Controllers
                     Message = "Номер телефона не зарегистрирован"
                 });
 
-            if (user.PhoneNumber != "+78888888888" && user.PhoneNumber != "+79999999999")
+            if (user.PhoneNumber != "+78888888888" && user.PhoneNumber != "+79999999999" && user.PhoneNumber != "+70000000000")
                 return BadRequest(new ResponseModel
                 {
                     Success = false,

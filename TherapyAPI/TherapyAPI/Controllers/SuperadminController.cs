@@ -508,7 +508,10 @@ namespace TherapyAPI.Controllers
                 .Select(x => new ClientVideoReviewViewModel(x))
                 .ToList();
 
-            return Ok(PaginationHelper.PaginateEntityCollection(reviews, query));
+            return Ok(new DataResponse<List<ClientVideoReviewViewModel>>
+            {
+                Data = reviews
+            });
         }
 
         [HttpPost("reviews/video")]

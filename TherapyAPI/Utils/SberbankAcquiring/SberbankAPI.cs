@@ -25,7 +25,7 @@ namespace Utils.SberbankAcquiring
                 };
 
                 var content = JsonConvert.DeserializeObject<Dictionary<string, string>>(JsonConvert.SerializeObject(request, serializerSettings));
-                var uri = new Uri(TestHost, "payment/rest/register.do");
+                var uri = new Uri(ProductionHost, "payment/rest/register.do");
                 var response = await client.PostAsync(uri, new FormUrlEncodedContent(content));
                 var responseContent = await response.Content.ReadAsStringAsync();
 
