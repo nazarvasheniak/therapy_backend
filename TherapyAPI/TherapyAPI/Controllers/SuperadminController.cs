@@ -27,7 +27,6 @@ namespace TherapyAPI.Controllers
     {
         private IUserService UserService { get; set; }
         private ISpecialistService SpecialistService { get; set; }
-        private ISpecialistsService SpecialistsService { get; set; }
         private ISessionService SessionService { get; set; }
         private IReviewService ReviewService { get; set; }
         private IProblemService ProblemService { get; set; }
