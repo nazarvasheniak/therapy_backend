@@ -32,6 +32,8 @@ namespace TherapyAPI.Controllers
         private IProblemService ProblemService { get; set; }
         private IProblemImageService ProblemImageService { get; set; }
         private IProblemResourceService ProblemResourceService { get; set; }
+        private IClientVideoReviewService VideoReviewService { get; set; }
+        private IFileService FileService { get; set; }
 
         public SuperadminController([FromServices]
             IUserService userService,
@@ -40,7 +42,9 @@ namespace TherapyAPI.Controllers
             IReviewService reviewService,
             IProblemService problemService,
             IProblemImageService problemImageService,
-            IProblemResourceService problemResourceService
+            IProblemResourceService problemResourceService,
+            IClientVideoReviewService videoReviewService,
+            IFileService fileService
         )
         {
             UserService = userService;
@@ -50,6 +54,8 @@ namespace TherapyAPI.Controllers
             ProblemService = problemService;
             ProblemImageService = problemImageService;
             ProblemResourceService = problemResourceService;
+            VideoReviewService = videoReviewService;
+            FileService = fileService;
         }
 
         private SpecialistViewModel GetFullSpecialist(Specialist specialist)
@@ -492,6 +498,53 @@ namespace TherapyAPI.Controllers
                 OrderBy = query.OrderBy,
                 TotalItems = all.Count,
                 SearchQuery = query.SearchQuery
+            });
+        }
+
+        [HttpGet("reviews/video")]
+        public IActionResult GetVideoReviews([FromQuery] GetList query)
+        {
+            var reviews = VideoReviewService.GetAll()
+                .Select(x => new ClientVideoReviewViewModel(x))
+                .ToList();
+
+            return Ok(PaginationHelper.PaginateEntityCollection(reviews, query));
+        }
+
+        [HttpPost("reviews/video")]
+        public IActionResult CreateVideoReview([FromBody] CreateVideoReviewRequest request)
+        {
+            var photo = FileService.Get(request.PhotoID);
+            if (photo == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Фото не найдено"
+                });
+
+            if (request.Text.Length > 120)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Максимальная длина 120 символов"
+                });
+
+            var review = new ClientVideoReview
+            {
+                FullName = request.FullName,
+                Photo = photo,
+                Text = request.Text,
+                LinkVK = request.LinkVK,
+                LinkYouTube = request.LinkYouTube,
+                ReviewDate = DateTime.UtcNow
+            };
+
+            VideoReviewService.Create(review);
+
+            return Ok(new DataResponse<ClientVideoReviewViewModel>
+            {
+
+                Data = new ClientVideoReviewViewModel(review)
             });
         }
     }
