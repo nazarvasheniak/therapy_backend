@@ -140,6 +140,13 @@ namespace TherapyAPI.Controllers
                 TotalResourcesCount = resources.Count
             };
 
+            var review = ReviewService.GetSessionReview(session);
+            if (review != null)
+            {
+                result.Review = new ReviewViewModel(review);
+                result.ReviewScore = review.Score;
+            }
+
             images.ForEach(image =>
             {
                 if (image.Session.Specialist != session.Specialist)
@@ -151,10 +158,6 @@ namespace TherapyAPI.Controllers
                 if (resource.Session.Specialist != session.Specialist)
                     result.IsAllResourcesFromOneSpecialist = false;
             });
-
-            var review = ReviewService.GetSessionReview(session);
-            if (review != null)
-                result.ReviewScore = review.Score;
 
             return result;
         }

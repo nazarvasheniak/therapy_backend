@@ -11,13 +11,17 @@ namespace Domain.ViewModels
         public SessionStatus SessionStatus { get; set; }
         public UserViewModel Client { get; set; }
         public ProblemViewModel Problem { get; set; }
+        public ReviewViewModel Review { get; set; }
         public string ProblemText { get; set; }
         public int ReviewScore { get; set; }
         public double Reward { get; set; }
+
         public bool IsSpecialistClose { get; set; }
         public bool IsClientClose { get; set; }
+
         public DateTime SpecialistCloseDate { get; set; }
         public DateTime ClientCloseDate { get; set; }
+
         public int SessionImagesCount { get; set; }
         public int TotalImagesCount { get; set; }
 

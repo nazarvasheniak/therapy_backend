@@ -391,7 +391,8 @@ namespace TherapyAPI.Controllers
                 Specialist = specialist,
                 Problem = problem,
                 Reward = specialist.Price,
-                Status = SessionStatus.Waiting
+                Status = SessionStatus.New,
+                Date = DateTime.UtcNow
             };
 
             SessionService.Create(session);
@@ -439,7 +440,7 @@ namespace TherapyAPI.Controllers
 
             session.Specialist = specialist;
             session.Reward = specialist.Price;
-            session.Status = SessionStatus.Waiting;
+            session.Status = SessionStatus.New;
 
             SessionService.Update(session);
 

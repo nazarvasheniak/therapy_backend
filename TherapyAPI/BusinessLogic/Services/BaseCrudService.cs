@@ -19,6 +19,13 @@ namespace BusinessLogic.Services
                 : Repository.GetAll();
         }
 
+        public virtual IQueryable<T> GetAllIncludesArchived()
+        {
+            return typeof(IDeletableObject).IsAssignableFrom(typeof(T))
+                ? Repository.GetAll()
+                : Repository.GetAll();
+        }
+
         public virtual T Get(long id)
         {
             return typeof(IDeletableObject).IsAssignableFrom(typeof(T))

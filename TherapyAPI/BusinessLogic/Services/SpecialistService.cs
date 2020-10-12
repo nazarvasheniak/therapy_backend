@@ -16,5 +16,17 @@ namespace BusinessLogic.Services
         {
             return GetAll().FirstOrDefault(x => x.User == user);
         }
+
+        public Specialist CreateSpecialistFromUser(User user)
+        {
+            var specialist = GetAllIncludesArchived().FirstOrDefault(x => x.User == user);
+            if (specialist != null)
+                return specialist;
+
+            specialist = new Specialist { User = user, Price = 100 };
+            Create(specialist);
+
+            return specialist;
+        }
     }
 }
