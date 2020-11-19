@@ -12,16 +12,18 @@ namespace BusinessLogic.Services
 {
     public class FileService : BaseCrudService<File>, IFileService
     {
+        private readonly string UploadsDir = System.IO.Path.Combine("/home", "admin", "web", "static.kornevaya.ru", "uploads");
+        //string private readonly dir = System.IO.Path.Combine("/Users", "user", "documents", "testfiles", now.Month.ToString());
+        //string private readonly dir = System.IO.Path.Combine("C:", "OpenServer", "domains", "files", now.Month.ToString());
+
         public FileService(IRepository<File> repository) : base(repository)
         {
         }
 
         public async Task<File> SaveFile(string base64string)
         {
-            var now = DateTime.Now;
-            string dir = System.IO.Path.Combine("/var", "www", "www-root", "data", "www", "static.kornevaya.ru", "uploads", now.Month.ToString());
-            //string dir = System.IO.Path.Combine("/Users", "user", "documents", "testfiles", now.Month.ToString());
-            //string dir = System.IO.Path.Combine("C:", "OpenServer", "domains", "files", now.Month.ToString());
+            var now = DateTime.UtcNow;
+            var dir = System.IO.Path.Combine(UploadsDir, now.Month.ToString());
 
             if (!System.IO.Directory.Exists(dir))
                 System.IO.Directory.CreateDirectory(dir);
@@ -50,10 +52,8 @@ namespace BusinessLogic.Services
 
         public async Task<File> SaveFileForm(IFormFile formFile)
         {
-            var now = DateTime.Now;
-            string dir = System.IO.Path.Combine("/var", "www", "www-root", "data", "www", "static.kornevaya.ru", "uploads", now.Month.ToString());
-            //string dir = System.IO.Path.Combine("/Users", "user", "documents", "testfiles", now.Month.ToString());
-            //string dir = System.IO.Path.Combine("C:", "OpenServer", "domains", "files", now.Month.ToString());
+            var now = DateTime.UtcNow;
+            var dir = System.IO.Path.Combine(UploadsDir, now.Month.ToString());
 
             if (!System.IO.Directory.Exists(dir))
                 System.IO.Directory.CreateDirectory(dir);

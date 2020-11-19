@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
@@ -22,8 +23,9 @@ namespace TherapyAPI
                 {
                     webBuilder.UseStartup<Startup>();
                     webBuilder.UseKestrel();
+                    webBuilder.UseContentRoot(Directory.GetCurrentDirectory());
                     //webBuilder.UseUrls("http://*:5000");
-                    webBuilder.UseUrls("http://localhost:5000");
+                    webBuilder.UseUrls("http://localhost:3083");
                 });
     }
 }
