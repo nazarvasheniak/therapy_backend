@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BusinessLogic.Config;
@@ -78,6 +79,11 @@ namespace BusinessLogic.Services
             Create(dbRecord);
 
             return dbRecord;
+        }
+
+        public File GetFileByUrl(string url)
+        {
+            return GetAll().FirstOrDefault(file => file.Url == url);
         }
 
         public IEnumerable<FileViewModel> FilterFilesByQueryString(List<FileViewModel> list, string query)

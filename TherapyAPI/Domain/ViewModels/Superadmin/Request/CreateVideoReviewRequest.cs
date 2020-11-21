@@ -13,6 +13,6 @@ namespace Domain.ViewModels.Superadmin.Request
         public string Text { get; set; }
 
         [Required]
-        public string LinkYouTube { get; set; }
+        public long VideoID { get; set; }
     }
 }

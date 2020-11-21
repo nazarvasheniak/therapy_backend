@@ -517,18 +517,26 @@ namespace TherapyAPI.Controllers
         [HttpPost("reviews/video")]
         public IActionResult CreateVideoReview([FromBody] CreateVideoReviewRequest request)
         {
-            if (request.Text.Length > 120)
+            if (request.Text.Length > 150)
                 return BadRequest(new ResponseModel
                 {
                     Success = false,
-                    Message = "Максимальная длина 120 символов"
+                    Message = "Максимальная длина 150 символов"
+                });
+
+            var video = FileService.Get(request.VideoID);
+            if (video == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Видео не найдено"
                 });
 
             var review = new ClientVideoReview
             {
                 FullName = request.FullName,
                 Text = request.Text,
-                LinkYouTube = request.LinkYouTube,
+                LinkYouTube = video.Url,
                 ReviewDate = DateTime.UtcNow
             };
 
@@ -566,8 +574,12 @@ namespace TherapyAPI.Controllers
             if (review.FullName != request.FullName)
                 review.FullName = request.FullName;
 
-            if (review.LinkYouTube != request.LinkYouTube)
-                review.LinkYouTube = request.LinkYouTube;
+            var video = FileService.Get(request.VideoID);
+            if (video != null)
+            {
+                if (review.LinkYouTube != video.Url)
+                    review.LinkYouTube = video.Url;
+            }
 
             VideoReviewService.Update(review);
 

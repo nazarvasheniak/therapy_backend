@@ -18,7 +18,6 @@ namespace Domain.ViewModels
             {
                 ID = review.ID;
                 FullName = review.FullName;
-                PhotoUrl = review.Photo.Url;
                 Text = review.Text;
                 LinkVK = review.LinkVK;
                 LinkYouTube = review.LinkYouTube;

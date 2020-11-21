@@ -12,6 +12,7 @@ namespace BusinessLogic.Interfaces
     {
         Task<File> SaveFile(string base64string);
         Task<File> SaveFileForm(IFormFile formFile);
+        File GetFileByUrl(string url);
         IEnumerable<FileViewModel> FilterFilesByQueryString(List<FileViewModel> list, string query);
         FileType GetFileType(string base64string);
         FileType GetFileType(IFormFile formFile);

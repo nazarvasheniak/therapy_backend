@@ -42,6 +42,23 @@ namespace TherapyAPI.Controllers
             });
         }
 
+        [HttpPost("url/get")]
+        public IActionResult GetFileByUrl([FromBody] GetFileByUrlRequest request)
+        {
+            var file = FileService.GetFileByUrl(request.Url);
+            if (file == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Файл не найден"
+                });
+
+            return Ok(new DataResponse<FileViewModel>
+            {
+                Data = new FileViewModel(file)
+            });
+        }
+
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> UploadFile([FromBody] UploadFileRequest request)
