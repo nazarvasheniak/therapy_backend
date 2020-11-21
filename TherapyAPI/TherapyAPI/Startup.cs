@@ -1,9 +1,12 @@
 using System;
+using System.Text;
 using BusinessLogic;
+using BusinessLogic.Config;
 using BusinessLogic.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +15,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Storage;
 using TherapyAPI.BackgroundServices;
+using TherapyAPI.TokenManager;
+using TherapyAPI.TokenManager.Interfaces;
 using TherapyAPI.WebSocketManager;
 
 namespace TherapyAPI
@@ -30,9 +35,20 @@ namespace TherapyAPI
         {
             services.AddControllers();
             services.AddBuisnessServices();
-            //services.AddNHibernate("Server=localhost;Port=3306;Uid=root;Pwd=admin;Database=therapy_db;SslMode=required;");
-            services.AddNHibernate("Server=localhost;Port=3306;Uid=admin_therapy;Pwd=ZTDA093zM8;Database=admin_therapy_db;SslMode=required;");
+            services.AddNHibernate("Server=localhost;Port=3306;Uid=root;Pwd=admin;Database=therapy_db;SslMode=required;");
+            //services.AddNHibernate("Server=localhost;Port=3306;Uid=admin_therapy;Pwd=ZTDA093zM8;Database=admin_therapy_db;SslMode=required;");
             services.AddCors();
+
+            services.AddTransient<TokenManagerMiddleware>();
+            services.AddTransient<ITokenManager, TokenManager.TokenManager>();
+
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddDistributedRedisCache(r => { r.Configuration = Configuration["redis:connectionString"]; });
+
+            var jwtSection = Configuration.GetSection("jwt");
+            var jwtOptions = new JwtOptions();
+
+            jwtSection.Bind(jwtOptions);
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -41,15 +57,14 @@ namespace TherapyAPI
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
-                        ValidIssuer = AuthOptions.ISSUER,
-                        ValidateAudience = true,
-                        ValidAudience = AuthOptions.AUDIENCE,
-                        RequireExpirationTime = true,
+                        ValidIssuer = jwtOptions.Issuer,
+                        ValidateAudience = false,
                         ValidateLifetime = true,
-                        IssuerSigningKey = AuthOptions.GetSymmetricSecurityKey(),
-                        ValidateIssuerSigningKey = true
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey))
                     };
                 });
+
+            services.Configure<JwtOptions>(jwtSection);
 
             services.AddSwaggerGen(c =>
             {
@@ -126,8 +141,10 @@ namespace TherapyAPI
 
 
             app.UseRouting();
+            app.UseMiddleware<ErrorHandlerMiddleware>();
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseMiddleware<TokenManagerMiddleware>();
             app.UseHttpsRedirection();
 
             app.UseEndpoints(endpoints =>

@@ -23,7 +23,7 @@ namespace BusinessLogic.Services
             if (specialist != null)
                 return specialist;
 
-            specialist = new Specialist { User = user, Price = 100 };
+            specialist = new Specialist { User = user, Price = 1000 };
             Create(specialist);
 
             return specialist;

@@ -9,6 +9,7 @@ using Domain.ViewModels.Request;
 using Domain.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TherapyAPI.TokenManager.Interfaces;
 using Utils.SmsC;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -19,52 +20,26 @@ namespace TherapyAPI.Controllers
     public class AuthController : Controller
     {
         private IUserService UserService { get; set; }
+        private ITokenManager TokenManager { get; set; }
         private IUserSessionService UserSessionService { get; set; }
         private IProblemService ProblemService { get; set; }
         private IUserWalletService UserWalletService { get; set; }
+        private ISpecialistService SpecialistService { get; set; }
 
         public AuthController([FromServices]
             IUserService userService,
+            ITokenManager tokenManager,
             IUserSessionService userSessionService,
             IProblemService problemService,
-            IUserWalletService userWalletService)
+            IUserWalletService userWalletService,
+            ISpecialistService specialistService)
         {
             UserService = userService;
+            TokenManager = tokenManager;
             UserSessionService = userSessionService;
             ProblemService = problemService;
             UserWalletService = userWalletService;
-        }
-
-        [HttpPost("test/sign-in")]
-        public IActionResult TestSignIn([FromBody] SignInRequest request)
-        {
-            var user = UserService.FindByPhoneNumber(request.PhoneNumber);
-            if (user == null)
-                return NotFound(new ResponseModel
-                {
-                    Success = false,
-                    Message = "Номер телефона не зарегистрирован"
-                });
-
-            if (user.PhoneNumber != "+78888888888" && user.PhoneNumber != "+79999999999" && user.PhoneNumber != "+70000000000")
-                return BadRequest(new ResponseModel
-                {
-                    Success = false,
-                    Message = "Ошибка доступа"
-                });
-
-            if (UserSessionService.GetUserActiveSession(user) != null)
-                UserSessionService.CloseUserActiveSession(user);
-
-            UserSessionService.CreateSession(user);
-
-            var token = UserSessionService.AuthorizeUser(user);
-
-            return Ok(new SignInConfirmResponse
-            {
-                Token = token,
-                Role = user.Role
-            });
+            SpecialistService = specialistService;
         }
 
         ///api/auth/sign-up
@@ -110,6 +85,56 @@ namespace TherapyAPI.Controllers
                 User = user,
                 ProblemText = request.Problem
             });
+
+            var session = UserSessionService.CreateSession(user);
+            SmscHelper.SendSms(user.PhoneNumber, $"Код для входа: {session.AuthCode}");
+
+            return Ok(new SignInResponse
+            {
+                UserID = user.ID
+            });
+        }
+
+        ///api/auth/sign-up/specialist
+        [HttpPost("sign-up/specialist")]
+        public IActionResult SignUpSpecialist([FromBody] SignUpSpecialistRequest request)
+        {
+            var user = UserService.FindByPhoneNumber(request.PhoneNumber);
+            if (user != null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Номер телефона уже используется"
+                });
+
+            user = UserService.FindByEmail(request.Email);
+            if (user != null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Email уже используется"
+                });
+
+            user = new User
+            {
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                PhoneNumber = request.PhoneNumber,
+                Email = request.Email,
+                Role = UserRole.Specialist,
+                RegisteredAt = DateTime.UtcNow
+            };
+
+            UserService.Create(user);
+
+            UserWalletService.Create(new UserWallet
+            {
+                User = user,
+                Balance = 0
+            });
+
+            var specialist = SpecialistService.CreateSpecialistFromUser(user);
+            specialist.Description = request.Description;
 
             var session = UserSessionService.CreateSession(user);
             SmscHelper.SendSms(user.PhoneNumber, $"Код для входа: {session.AuthCode}");
@@ -225,6 +250,7 @@ namespace TherapyAPI.Controllers
                     Message = "Пользователь не найден"
                 });
 
+            TokenManager.DeactivateCurrentAsync();
             UserSessionService.CloseUserActiveSession(user);
 
             return Ok(new ResponseModel());

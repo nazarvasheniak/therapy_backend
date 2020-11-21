@@ -517,14 +517,6 @@ namespace TherapyAPI.Controllers
         [HttpPost("reviews/video")]
         public IActionResult CreateVideoReview([FromBody] CreateVideoReviewRequest request)
         {
-            var photo = FileService.Get(request.PhotoID);
-            if (photo == null)
-                return NotFound(new ResponseModel
-                {
-                    Success = false,
-                    Message = "Фото не найдено"
-                });
-
             if (request.Text.Length > 120)
                 return BadRequest(new ResponseModel
                 {
@@ -535,9 +527,7 @@ namespace TherapyAPI.Controllers
             var review = new ClientVideoReview
             {
                 FullName = request.FullName,
-                Photo = photo,
                 Text = request.Text,
-                LinkVK = request.LinkVK,
                 LinkYouTube = request.LinkYouTube,
                 ReviewDate = DateTime.UtcNow
             };
@@ -546,9 +536,138 @@ namespace TherapyAPI.Controllers
 
             return Ok(new DataResponse<ClientVideoReviewViewModel>
             {
-
                 Data = new ClientVideoReviewViewModel(review)
             });
+        }
+
+        [HttpPut("reviews/video/{id}")]
+        public IActionResult EditVideoReview([FromBody] CreateVideoReviewRequest request, long id)
+        {
+            var review = VideoReviewService.Get(id);
+            if (review == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Отзыв не найден"
+                });
+
+            if (review.Text != request.Text)
+            {
+                if (request.Text.Length > 150)
+                    return BadRequest(new ResponseModel
+                    {
+                        Success = false,
+                        Message = "Максимальная длина 150 символов"
+                    });
+
+                review.Text = request.Text;
+            }
+
+            if (review.FullName != request.FullName)
+                review.FullName = request.FullName;
+
+            if (review.LinkYouTube != request.LinkYouTube)
+                review.LinkYouTube = request.LinkYouTube;
+
+            VideoReviewService.Update(review);
+
+            return Ok(new DataResponse<ClientVideoReviewViewModel>
+            {
+                Data = new ClientVideoReviewViewModel(review)
+            });
+        }
+
+        [HttpDelete("reviews/video/{id}")]
+        public IActionResult DeleteVideoReview(long id)
+        {
+            var review = VideoReviewService.Get(id);
+            if (review == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Отзыв не найден"
+                });
+
+            VideoReviewService.Delete(review);
+
+            return Ok(new ResponseModel());
+        }
+
+        [HttpGet("files/video")]
+        public IActionResult GetVideoFiles([FromQuery] GetSearchListRequest query)
+        {
+            var all = FileService.GetAll()
+                .Where(file =>
+                    file.Type == FileType.MP4 ||
+                    file.Type == FileType.MOV ||
+                    file.Type == FileType.AVI)
+                .ToList();
+
+            var list = all.Select(file => new FileViewModel(file)).ToList();
+
+            if (query.SearchQuery != null && query.SearchQuery != "")
+            {
+                list = FileService.FilterFilesByQueryString(list, query.SearchQuery).ToHashSet().ToList();
+            }
+
+            var pagination = PaginationHelper.PaginateEntityCollection(list, query);
+
+            return Ok(new GetSearchListResponse
+            {
+                Data = pagination.Data,
+                CurrentPage = pagination.CurrentPage,
+                PageSize = pagination.PageSize,
+                TotalPages = pagination.TotalPages,
+                TotalItems = pagination.TotalItems,
+                SearchQuery = query.SearchQuery
+            });
+        }
+
+        [HttpGet("files/image")]
+        public IActionResult GetImageFiles([FromQuery] GetSearchListRequest query)
+        {
+            var all = FileService.GetAll()
+                .Where(file =>
+                    file.Type == FileType.PNG ||
+                    file.Type == FileType.JPEG ||
+                    file.Type == FileType.GIF ||
+                    file.Type == FileType.BMP)
+                .ToList();
+
+            var list = all.Select(file => new FileViewModel(file)).ToList();
+
+            if (query.SearchQuery != null && query.SearchQuery != "")
+            {
+                list = FileService.FilterFilesByQueryString(list, query.SearchQuery).ToHashSet().ToList();
+            }
+
+            var pagination = PaginationHelper.PaginateEntityCollection(list, query);
+
+            return Ok(new GetSearchListResponse
+            {
+                Data = pagination.Data,
+                CurrentPage = pagination.CurrentPage,
+                PageSize = pagination.PageSize,
+                TotalPages = pagination.TotalPages,
+                TotalItems = pagination.TotalItems,
+                SearchQuery = query.SearchQuery
+            });
+        }
+
+        [HttpDelete("files/{id}")]
+        public IActionResult DeleteFile(long id)
+        {
+            var file = FileService.Get(id);
+            if (file == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Файл не найден"
+                });
+
+            FileService.Delete(file);
+
+            return Ok(new ResponseModel());
         }
     }
 }

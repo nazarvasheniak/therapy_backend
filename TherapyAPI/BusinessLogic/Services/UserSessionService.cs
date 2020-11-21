@@ -6,14 +6,21 @@ using System.Security.Claims;
 using BusinessLogic.Interfaces;
 using Domain.Models;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Configuration;
 using Storage.Interfaces;
+using BusinessLogic.Config;
+using System.Text;
 
 namespace BusinessLogic.Services
 {
     public class UserSessionService : BaseCrudService<UserSession>, IUserSessionService
     {
-        public UserSessionService(IRepository<UserSession> repository) : base(repository)
+        private IConfiguration Configuration { get; set; }
+
+        public UserSessionService(IRepository<UserSession> repository,
+            IConfiguration configuration) : base(repository)
         {
+            Configuration = configuration;
         }
 
         public UserSession CreateSession(User user)
@@ -71,17 +78,24 @@ namespace BusinessLogic.Services
 
         private string GetSecurityToken(ClaimsIdentity identity)
         {
+            var jwtSection = Configuration.GetSection("jwt");
+            var jwtOptions = new JwtOptions
+            {
+                ExpiryMinutes = int.Parse(jwtSection["expiryMinutes"]),
+                SecretKey = jwtSection["secretKey"],
+                Issuer = jwtSection["issuer"]
+            };
+
             var now = DateTime.UtcNow;
-            var expires = now.Add(TimeSpan.FromMinutes(AuthOptions.LIFETIME));
+            var expires = now.Add(TimeSpan.FromMinutes(jwtOptions.ExpiryMinutes));
 
             var jwt = new JwtSecurityToken(
-                    issuer: AuthOptions.ISSUER,
-                    audience: AuthOptions.AUDIENCE,
+                    issuer: jwtOptions.Issuer,
                     notBefore: now,
                     claims: identity.Claims,
                     expires: expires,
                     signingCredentials: new SigningCredentials(
-                        AuthOptions.GetSymmetricSecurityKey(),
+                        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey)),
                         SecurityAlgorithms.HmacSha256)
                     );
 

@@ -18,6 +18,7 @@
     <PackageReference Include="Microsoft.AspNetCore.HttpOverrides" Version="2.2.0" />
     <PackageReference Include="MySql.Data" Version="8.0.20" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.5.1" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Redis" Version="2.2.0" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Controllers\" />
@@ -25,6 +26,9 @@
     <Folder Include="WebSocketManager\Interfaces\" />
     <Folder Include="WebSocketManager\Models\" />
     <Folder Include="WebSocketManager\Enums\" />
+    <Folder Include="TokenManager\" />
+    <Folder Include="TokenManager\Models\" />
+    <Folder Include="TokenManager\Interfaces\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Controllers\WeatherForecastController.cs" />

@@ -11,6 +11,7 @@ namespace Domain.Enums
         MP4 = 5,
         MOV = 6,
         TXT = 7,
-        PDF = 8
+        PDF = 8,
+        SVG = 9
     }
 }
