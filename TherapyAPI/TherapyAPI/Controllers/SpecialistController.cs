@@ -18,13 +18,14 @@ using Utils;
 namespace TherapyAPI.Controllers
 {
     [Route("api/specialist")]
-    [Authorize]
+    [Authorize(Roles = "Specialist")]
     public class SpecialistController : Controller
     {
         private IUserService UserService { get; set; }
-        private IFileService FileService { get; set; }
+        private IArticleLikeService ArticleLikeService { get; set; }
+        private IArticleCommentService ArticleCommentService { get; set; }
+        private IArticlePublishService ArticlePublishService { get; set; }
         private ISpecialistService SpecialistService { get; set; }
-        private IUserWalletService WalletService { get; set; }
         private IReviewService ReviewService { get; set; }
         private ISessionService SessionService { get; set; }
         private IProblemService ProblemService { get; set; }
@@ -36,9 +37,10 @@ namespace TherapyAPI.Controllers
 
         public SpecialistController([FromServices]
             IUserService userService,
-            IFileService fileService,
+            IArticleLikeService articleLikeService,
+            IArticleCommentService articleCommentService,
+            IArticlePublishService articlePublishService,
             ISpecialistService specialistService,
-            IUserWalletService walletService,
             IReviewService reviewService,
             ISessionService sessionService,
             IProblemService problemService,
@@ -48,16 +50,16 @@ namespace TherapyAPI.Controllers
             SessionsTimerService sessionsTimerService)
         {
             UserService = userService;
-            FileService = fileService;
+            ArticleLikeService = articleLikeService;
+            ArticleCommentService = articleCommentService;
+            ArticlePublishService = articlePublishService;
             SpecialistService = specialistService;
-            WalletService = walletService;
             ReviewService = reviewService;
             SessionService = sessionService;
             ProblemService = problemService;
             ProblemImageService = problemImageService;
             ProblemResourceService = problemResourceService;
             ProblemResourceTaskService = problemResourceTaskService;
-
             SessionsTimerService = sessionsTimerService;
         }
 
@@ -167,6 +169,14 @@ namespace TherapyAPI.Controllers
             var tasks = ProblemResourceTaskService.GetResourceTasks(resource);
 
             return new ProblemResourceViewModel(resource, tasks);
+        }
+
+        private ArticleViewModel GetFullArticle(Article article)
+        {
+            var likes = ArticleLikeService.GetArticleLikes(article);
+            var comments = ArticleCommentService.GetArticleComments(article);
+
+            return new ArticleViewModel(article, likes, comments);
         }
 
         [HttpGet("info")]
@@ -394,6 +404,35 @@ namespace TherapyAPI.Controllers
                 NegativeReviews = ReviewService.GetSpecialistReviews(specialist, "Negative"),
                 Rating = ReviewService.GetSpecialistRating(specialist)
             });
+        }
+
+        [HttpGet("articles")]
+        public IActionResult GetArticles([FromQuery] GetList query)
+        {
+            var user = UserService.Get(long.Parse(User.Identity.Name));
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var specialist = SpecialistService.GetSpecialistFromUser(user);
+            if (specialist == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Специалист не найден"
+                });
+
+            var publishes = ArticlePublishService.GetAll()
+                .Where(publish => publish.Article.Author == specialist)
+                .Select(publish => new ArticlePublishViewModel(publish, GetFullArticle(publish.Article)))
+                .ToList();
+
+            var response = PaginationHelper.PaginateEntityCollection(publishes, query);
+
+            return Ok(response);
         }
 
         [HttpGet("clients")]

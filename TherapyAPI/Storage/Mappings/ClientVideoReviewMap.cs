@@ -14,7 +14,7 @@ namespace Storage.Mappings
             References(e => e.Photo, "id_photo");
 
             Map(u => u.FullName, "full_name");
-            Map(u => u.Text, "review_text").CustomSqlType("text").Length(120);
+            Map(u => u.Text, "review_text").CustomSqlType("text").Length(150);
             Map(u => u.LinkYouTube, "link_youtube");
             Map(u => u.LinkVK, "link_vk");
             Map(u => u.ReviewDate, "review_date");

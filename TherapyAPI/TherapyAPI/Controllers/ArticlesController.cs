@@ -22,9 +22,9 @@ namespace TherapyAPI.Controllers
         private IArticleService ArticleService { get; set; }
         private IArticleLikeService ArticleLikeService { get; set; }
         private IArticleCommentService ArticleCommentService { get; set; }
+        private IArticlePublishService ArticlePublishService { get; set; }
         private IUserService UserService { get; set; }
         private ISpecialistService SpecialistService { get; set; }
-
         private IReviewService ReviewService { get; set; }
         private IFileService FileService { get; set; }
 
@@ -32,6 +32,7 @@ namespace TherapyAPI.Controllers
             IArticleService articleService,
             IArticleLikeService articleLikeService,
             IArticleCommentService articleCommentService,
+            IArticlePublishService articlePublishService,
             IUserService userService,
             ISpecialistService specialistService,
             IReviewService reviewService,
@@ -40,6 +41,7 @@ namespace TherapyAPI.Controllers
             ArticleService = articleService;
             ArticleLikeService = articleLikeService;
             ArticleCommentService = articleCommentService;
+            ArticlePublishService = articlePublishService;
             UserService = userService;
             SpecialistService = specialistService;
             ReviewService = reviewService;
@@ -140,6 +142,7 @@ namespace TherapyAPI.Controllers
             var result = new List<ArticleViewModel>();
 
             var articles = ArticleService.GetAllArticles()
+                .Where(article => article.ModerationStatus == ArticleModerationStatus.Accepted)
                 .Skip((query.PageNumber - 1) * query.PageSize)
                 .Take(query.PageSize)
                 .ToList();
@@ -196,7 +199,8 @@ namespace TherapyAPI.Controllers
                 {
                     case ArticlesSort.Comments:
                         {
-                            articles.AddRange(ArticleService.GetAll().ToList()
+                            articles.AddRange(ArticleService.GetAll()
+                                .Where(article => article.ModerationStatus == ArticleModerationStatus.Accepted).ToList()
                                 .OrderBy(x => ArticleCommentService.GetArticleCommentsCount(x))
                                 .Skip((query.PageNumber - 1) * query.PageSize)
                                 .Take(query.PageSize)
@@ -207,7 +211,8 @@ namespace TherapyAPI.Controllers
 
                     case ArticlesSort.Likes:
                         {
-                            articles.AddRange(ArticleService.GetAll().ToList()
+                            articles.AddRange(ArticleService.GetAll()
+                                .Where(article => article.ModerationStatus == ArticleModerationStatus.Accepted).ToList()
                                 .OrderBy(x => ArticleLikeService.GetArticleLikesCount(x))
                                 .Skip((query.PageNumber - 1) * query.PageSize)
                                 .Take(query.PageSize)
@@ -218,7 +223,8 @@ namespace TherapyAPI.Controllers
 
                     case ArticlesSort.Date:
                         {
-                            articles.AddRange(ArticleService.GetAll().ToList()
+                            articles.AddRange(ArticleService.GetAll()
+                                .Where(article => article.ModerationStatus == ArticleModerationStatus.Accepted).ToList()
                                 .OrderBy(x => x.Date)
                                 .Skip((query.PageNumber - 1) * query.PageSize)
                                 .Take(query.PageSize)
@@ -229,7 +235,8 @@ namespace TherapyAPI.Controllers
 
                     default:
                         {
-                            articles.AddRange(ArticleService.GetAll().ToList()
+                            articles.AddRange(ArticleService.GetAll()
+                                .Where(article => article.ModerationStatus == ArticleModerationStatus.Accepted).ToList()
                                 .OrderBy(x => x.Date)
                                 .Skip((query.PageNumber - 1) * query.PageSize)
                                 .Take(query.PageSize)
@@ -245,7 +252,8 @@ namespace TherapyAPI.Controllers
                 {
                     case ArticlesSort.Comments:
                         {
-                            articles.AddRange(ArticleService.GetAll().ToList()
+                            articles.AddRange(ArticleService.GetAll()
+                                .Where(article => article.ModerationStatus == ArticleModerationStatus.Accepted).ToList()
                                 .OrderByDescending(x => ArticleCommentService.GetArticleCommentsCount(x))
                                 .Skip((query.PageNumber - 1) * query.PageSize)
                                 .Take(query.PageSize)
@@ -256,7 +264,8 @@ namespace TherapyAPI.Controllers
 
                     case ArticlesSort.Likes:
                         {
-                            articles.AddRange(ArticleService.GetAll().ToList()
+                            articles.AddRange(ArticleService.GetAll()
+                                .Where(article => article.ModerationStatus == ArticleModerationStatus.Accepted).ToList()
                                 .OrderByDescending(x => ArticleLikeService.GetArticleLikesCount(x))
                                 .Skip((query.PageNumber - 1) * query.PageSize)
                                 .Take(query.PageSize)
@@ -267,7 +276,8 @@ namespace TherapyAPI.Controllers
 
                     case ArticlesSort.Date:
                         {
-                            articles.AddRange(ArticleService.GetAll().ToList()
+                            articles.AddRange(ArticleService.GetAll()
+                                .Where(article => article.ModerationStatus == ArticleModerationStatus.Accepted).ToList()
                                 .OrderByDescending(x => x.Date)
                                 .Skip((query.PageNumber - 1) * query.PageSize)
                                 .Take(query.PageSize)
@@ -278,7 +288,8 @@ namespace TherapyAPI.Controllers
 
                     default:
                         {
-                            articles.AddRange(ArticleService.GetAll().ToList()
+                            articles.AddRange(ArticleService.GetAll()
+                                .Where(article => article.ModerationStatus == ArticleModerationStatus.Accepted).ToList()
                                 .OrderByDescending(x => x.Date)
                                 .Skip((query.PageNumber - 1) * query.PageSize)
                                 .Take(query.PageSize)
@@ -321,7 +332,9 @@ namespace TherapyAPI.Controllers
         [HttpGet]
         public IActionResult GetArticles([FromQuery] GetList query)
         {
-            var all = ArticleService.GetAllArticles();
+            var all = ArticleService.GetAllArticles()
+                .Where(article => article.ModerationStatus == ArticleModerationStatus.Accepted)
+                .ToList();
 
             var articles = GetFullArticles(query);
 
@@ -338,7 +351,9 @@ namespace TherapyAPI.Controllers
         [HttpGet("sorted")]
         public IActionResult GetSortedArticles([FromQuery] GetArticlesList query)
         {
-            var all = ArticleService.GetAllArticles();
+            var all = ArticleService.GetAllArticles()
+                .Where(article => article.ModerationStatus == ArticleModerationStatus.Accepted)
+                .ToList();
 
             var articles = GetFullArticles(query);
 
@@ -481,10 +496,19 @@ namespace TherapyAPI.Controllers
                 Text = Encoding.UTF8.GetBytes(request.Text),
                 Image = previewImage,
                 Author = specialist,
-                Date = DateTime.UtcNow
+                Date = DateTime.UtcNow,
+                ModerationStatus = ArticleModerationStatus.New
             };
 
             ArticleService.Create(article);
+
+            var articlePublish = new ArticlePublish
+            {
+                Article = article,
+                Status = ArticleModerationStatus.New
+            };
+
+            ArticlePublishService.Create(articlePublish);
 
             return Ok(new DataResponse<ArticleViewModel>
             {
@@ -548,8 +572,27 @@ namespace TherapyAPI.Controllers
             article.ShortText = request.ShortText;
             article.Text = Encoding.UTF8.GetBytes(request.Text);
             article.Image = previewImage;
+            article.ModerationStatus = ArticleModerationStatus.New;
 
             ArticleService.Update(article);
+
+            var articlePublish = ArticlePublishService.GetArticlePublish(article);
+            if (articlePublish == null)
+            {
+                articlePublish = new ArticlePublish
+                {
+                    Article = article,
+                    Status = ArticleModerationStatus.New
+                };
+
+                ArticlePublishService.Create(articlePublish);
+            }
+            else
+            {
+                articlePublish.Status = ArticleModerationStatus.New;
+                articlePublish.Message = null;
+                ArticlePublishService.Update(articlePublish);
+            }
 
             return Ok(new DataResponse<ArticleViewModel>
             {
@@ -599,7 +642,10 @@ namespace TherapyAPI.Controllers
                     Message = "Ошибка доступа"
                 });
 
+            var articlePublish = ArticlePublishService.GetArticlePublish(article);
+
             ArticleService.Delete(article);
+            ArticlePublishService.Delete(articlePublish);
 
             return Ok(new ResponseModel());
         }

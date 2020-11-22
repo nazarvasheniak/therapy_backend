@@ -34,6 +34,10 @@ namespace TherapyAPI.Controllers
         private IProblemResourceService ProblemResourceService { get; set; }
         private IClientVideoReviewService VideoReviewService { get; set; }
         private IFileService FileService { get; set; }
+        private IArticleService ArticleService { get; set; }
+        private IArticleLikeService ArticleLikeService { get; set; }
+        private IArticleCommentService ArticleCommentService { get; set; }
+        private IArticlePublishService ArticlePublishService { get; set; }
 
         public SuperadminController([FromServices]
             IUserService userService,
@@ -44,8 +48,11 @@ namespace TherapyAPI.Controllers
             IProblemImageService problemImageService,
             IProblemResourceService problemResourceService,
             IClientVideoReviewService videoReviewService,
-            IFileService fileService
-        )
+            IFileService fileService,
+            IArticleService articleService,
+            IArticleLikeService articleLikeService,
+            IArticleCommentService articleCommentService,
+            IArticlePublishService articlePublishService)
         {
             UserService = userService;
             SpecialistService = specialistService;
@@ -56,6 +63,10 @@ namespace TherapyAPI.Controllers
             ProblemResourceService = problemResourceService;
             VideoReviewService = videoReviewService;
             FileService = fileService;
+            ArticleService = articleService;
+            ArticleLikeService = articleLikeService;
+            ArticleCommentService = articleCommentService;
+            ArticlePublishService = articlePublishService;
         }
 
         private SpecialistViewModel GetFullSpecialist(Specialist specialist)
@@ -292,6 +303,105 @@ namespace TherapyAPI.Controllers
         private Specialist CreateSpecialist(User user)
         {
             return SpecialistService.CreateSpecialistFromUser(user);
+        }
+
+        private List<ArticleViewModel> GetFullArticles(GetList query)
+        {
+            var isLoggedIn = false;
+
+            User user = null;
+
+            if (User.Identity.Name != null)
+            {
+                user = UserService.Get(long.Parse(User.Identity.Name));
+
+                if (user != null)
+                    isLoggedIn = true;
+            }
+
+            var result = new List<ArticleViewModel>();
+
+            var articles = ArticleService.GetAllArticles()
+                .Skip((query.PageNumber - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .ToList();
+
+            articles.ForEach(article =>
+            {
+                var likes = ArticleLikeService.GetAll()
+                    .Where(x => x.Article == article)
+                    .ToList();
+
+                var comments = ArticleCommentService.GetAll()
+                    .Where(x => x.Article == article)
+                    .ToList();
+
+                var isLiked = false;
+
+                if (isLoggedIn)
+                {
+                    if (likes.FirstOrDefault(x => x.Author == user) != null)
+                    {
+                        isLiked = true;
+                    }
+                }
+
+                var articleViewModel = new ArticleViewModel(article, likes, comments, isLiked);
+                articleViewModel.Author.Rating = ReviewService.GetSpecialistRating(article.Author);
+
+                result.Add(articleViewModel);
+            });
+
+            return result;
+        }
+
+        private ArticleViewModel GetFullArticle(long id)
+        {
+            var article = ArticleService.Get(id);
+
+            if (article == null)
+                return null;
+
+            var isLoggedIn = false;
+
+            User user = null;
+
+            if (User.Identity.Name != null)
+            {
+                user = UserService.Get(long.Parse(User.Identity.Name));
+
+                if (user != null)
+                    isLoggedIn = true;
+            }
+
+            var likes = ArticleLikeService.GetAll()
+                .Where(x => x.Article == article)
+                .ToList();
+
+            var comments = ArticleCommentService.GetArticleComments(article);
+
+            var isLiked = false;
+
+            if (isLoggedIn)
+            {
+                if (likes.FirstOrDefault(x => x.Author == user) != null)
+                {
+                    isLiked = true;
+                }
+            }
+
+            var result = new ArticleViewModel(article, likes, comments, isLiked);
+            result.Author.Rating = ReviewService.GetSpecialistRating(article.Author);
+
+            return result;
+        }
+
+        private ArticleViewModel GetFullArticle(Article article)
+        {
+            var likes = ArticleLikeService.GetArticleLikes(article);
+            var comments = ArticleCommentService.GetArticleComments(article);
+
+            return new ArticleViewModel(article, likes, comments);
         }
 
         [HttpGet("customers/{userID}")]
@@ -548,10 +658,10 @@ namespace TherapyAPI.Controllers
             });
         }
 
-        [HttpPut("reviews/video/{id}")]
-        public IActionResult EditVideoReview([FromBody] CreateVideoReviewRequest request, long id)
+        [HttpPut("reviews/video/{videoID}")]
+        public IActionResult EditVideoReview([FromBody] CreateVideoReviewRequest request, long videoID)
         {
-            var review = VideoReviewService.Get(id);
+            var review = VideoReviewService.Get(videoID);
             if (review == null)
                 return NotFound(new ResponseModel
                 {
@@ -589,10 +699,10 @@ namespace TherapyAPI.Controllers
             });
         }
 
-        [HttpDelete("reviews/video/{id}")]
-        public IActionResult DeleteVideoReview(long id)
+        [HttpDelete("reviews/video/{videoID}")]
+        public IActionResult DeleteVideoReview(long videoID)
         {
-            var review = VideoReviewService.Get(id);
+            var review = VideoReviewService.Get(videoID);
             if (review == null)
                 return NotFound(new ResponseModel
                 {
@@ -603,6 +713,68 @@ namespace TherapyAPI.Controllers
             VideoReviewService.Delete(review);
 
             return Ok(new ResponseModel());
+        }
+
+        [HttpGet("articles/publish")]
+        public IActionResult GetArticles([FromQuery] GetList query)
+        {
+            var all = ArticlePublishService.GetAll().ToList();
+            var publishes = ArticlePublishService.GetAll()
+                .Skip((query.PageNumber - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .Select(publish => new ArticlePublishViewModel(publish, GetFullArticle(publish.Article)))
+                .ToList();
+
+            return Ok(new ListResponse<ArticlePublishViewModel>
+            {
+                Data = publishes,
+                PageSize = query.PageSize,
+                CurrentPage = query.PageNumber,
+                TotalPages = (int)Math.Ceiling(all.Count / (double)query.PageSize),
+                TotalItems = all.Count
+            });
+        }
+
+        [HttpGet("articles/publish/{publishID}")]
+        public IActionResult GetArticle(long publishID)
+        {
+            var publish = ArticlePublishService.Get(publishID);
+            if (publish == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Статья не найдена"
+                });
+
+            return Ok(new DataResponse<ArticlePublishViewModel>
+            {
+                Data = new ArticlePublishViewModel(publish, GetFullArticle(publish.Article))
+            });
+        }
+
+        [HttpPatch("articles/publish/{publishID}")]
+        public IActionResult UpdateArticlePublish([FromBody] UpdateArticlePublishRequest request, long publishID)
+        {
+            var publish = ArticlePublishService.Get(publishID);
+            if (publish == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Статья не найдена"
+                });
+
+            publish.Status = request.Status;
+            publish.Message = request.Message;
+
+            ArticlePublishService.Update(publish);
+
+            publish.Article.ModerationStatus = request.Status;
+            ArticleService.Update(publish.Article);
+
+            return Ok(new DataResponse<ArticlePublishViewModel>
+            {
+                Data = new ArticlePublishViewModel(publish, GetFullArticle(publish.Article))
+            });
         }
 
         [HttpGet("files/video")]
