@@ -785,6 +785,7 @@ namespace TherapyAPI.Controllers
                     file.Type == FileType.MP4 ||
                     file.Type == FileType.MOV ||
                     file.Type == FileType.AVI)
+                .OrderByDescending(file => file.ID)
                 .ToList();
 
             var list = all.Select(file => new FileViewModel(file)).ToList();
@@ -816,6 +817,7 @@ namespace TherapyAPI.Controllers
                     file.Type == FileType.JPEG ||
                     file.Type == FileType.GIF ||
                     file.Type == FileType.BMP)
+                .OrderByDescending(file => file.ID)
                 .ToList();
 
             var list = all.Select(file => new FileViewModel(file)).ToList();
