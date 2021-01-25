@@ -25,7 +25,7 @@ namespace TherapyAPI
                     webBuilder.UseKestrel();
                     webBuilder.UseContentRoot(Directory.GetCurrentDirectory());
                     //webBuilder.UseUrls("http://*:5000");
-                    webBuilder.UseUrls("http://localhost:3083");
+                    webBuilder.UseUrls("http://91.210.169.118");
                 });
     }
 }
