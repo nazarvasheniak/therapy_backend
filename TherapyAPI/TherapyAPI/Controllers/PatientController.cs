@@ -342,7 +342,7 @@ namespace TherapyAPI.Controllers
                     Message = "Доступ запрещен"
                 });
 
-            var session = SessionService.GetWaitingSession(problem);
+            var session = SessionService.GetNewActiveSession(problem);
             if (session == null)
                 return NotFound(new ResponseModel
                 {
