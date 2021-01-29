@@ -15,7 +15,7 @@ namespace BusinessLogic.Services
 {
     public class FileService : BaseCrudService<File>, IFileService
     {
-        private readonly string UploadsDir = System.IO.Path.Combine("/home", "admin", "web", "static.kornevaya.ru", "public_html", "uploads");
+        private readonly string UploadsDir = System.IO.Path.Combine("/var", "www", "www-root", "data", "www", "static.kornevaya.ru", "uploads");
         //private readonly string UploadsDir = System.IO.Path.Combine("/Users", "user", "documents", "testfiles");
         //string private readonly dir = System.IO.Path.Combine("C:", "OpenServer", "domains", "files");
 
