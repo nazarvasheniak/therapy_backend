@@ -93,7 +93,7 @@ namespace BusinessLogic.Services
                     issuer: jwtOptions.Issuer,
                     notBefore: now,
                     claims: identity.Claims,
-                    expires: expires,
+                    //expires: expires,
                     signingCredentials: new SigningCredentials(
                         new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey)),
                         SecurityAlgorithms.HmacSha256)
