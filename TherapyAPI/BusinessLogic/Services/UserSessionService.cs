@@ -87,13 +87,13 @@ namespace BusinessLogic.Services
             };
 
             var now = DateTime.UtcNow;
-            //var expires = now.Add(TimeSpan.FromMinutes(jwtOptions.ExpiryMinutes));
+            var expires = now.Add(TimeSpan.FromMinutes(jwtOptions.ExpiryMinutes));
 
             var jwt = new JwtSecurityToken(
                     issuer: jwtOptions.Issuer,
                     notBefore: now,
                     claims: identity.Claims,
-                    //expires: expires,
+                    expires: expires,
                     signingCredentials: new SigningCredentials(
                         new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey)),
                         SecurityAlgorithms.HmacSha256)
